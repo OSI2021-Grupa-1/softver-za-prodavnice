@@ -1,12 +1,10 @@
 #pragma once
 #include <string>
 
-using std::string;
-
 class Item {
   private:
-	string name;
-	string id;
+	std::string name;
+	std::string id;
 	double price;
 	double quantity;
 
