@@ -23,7 +23,7 @@ endif()
 
 #add library folder
 
-set(FTXUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}./ext/ftxui)
+set(FTXUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/ftxui)
 add_subdirectory(${FTXUI_DIR})
 
 # exe
@@ -33,6 +33,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${FTXUI_DIR}/include src)
 target_link_libraries(${PROJECT_NAME} 
                         PRIVATE ftxui::screen
                         PRIVATE ftxui::dom
-  			PRIVATE ftxui::component)
+  			                PRIVATE ftxui::component)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
