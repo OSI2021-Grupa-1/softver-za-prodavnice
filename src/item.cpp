@@ -7,6 +7,12 @@ Item::Item(const Item& other)
 	: barcode(other.barcode), name(other.name), price(other.price), quantity(other.quantity) {}
 
 
+bool Item::operator==(const Item& other) const {
+	if (barcode == other.barcode) return true;
+	else
+		return false;
+}
+
 void Item::set_price(double price) { this->price = price; }
 
 void Item::set_quantity(std::size_t quantity) { this->quantity = quantity; }

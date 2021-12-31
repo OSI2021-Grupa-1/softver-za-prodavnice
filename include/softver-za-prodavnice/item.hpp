@@ -13,6 +13,9 @@ class Item {
 	Item(std::string barcode, std::string name, double price, std::size_t quantity);
 	Item(const Item& other);
 
+	bool operator==(const Item& other) const; // potrebno za std::remove
+
+
 	void set_price(double price);
 	void set_quantity(std::size_t quantity);
 

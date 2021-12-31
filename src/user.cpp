@@ -9,6 +9,13 @@ User::User(const User& other)
 	: username(other.username), password(other.password), position(other.position),
 	  number_of_logins(other.number_of_logins) {}
 
+bool User::operator==(const User& other) const {
+	if (username == other.username) return true;
+	else
+		return false;
+}
+
+
 std::string User::get_username() const { return username; }
 
 std::string User::get_password() const { return password; }
