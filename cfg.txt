@@ -1,2 +1,0 @@
-korisnici=./softver-za-prodavnice/out/korisnici.txt
-artikli_na_stanju=./softver-za-prodavnice/out/korisnici.txt

@@ -1,32 +1,18 @@
 #include "softver-za-prodavnice/user.hpp"
 
-void User::set_username(std::string usr) { username = usr; }
+User::User(std::string username, std::string password, Position position,
+		   std::size_t number_of_logins)
+	: username(username), password(password), position(position),
+	  number_of_logins(number_of_logins) {}
 
-void User::set_password(std::string pw) { password = pw; }
+User::User(const User& other)
+	: username(other.username), password(other.password), position(other.position),
+	  number_of_logins(other.number_of_logins) {}
 
 std::string User::get_username() const { return username; }
 
 std::string User::get_password() const { return password; }
 
-void User::change_password(const std::string& new_pw) { 
-	password = new_pw;
-	// upis u fajl
-}
+Position User::get_position() const { return position; }
 
-void User::log_out() {
-
-}
-
-bool User::check_password_validity(const std::string& input) {
-	if (input == password) 
-		return true;
-	else
-		return false;
-}
-
-bool User::passwords_equal(const std::string& original, const std::string& confirmation) {
-	if (original == confirmation) 
-		return true;
-	else
-		return false;
-}
+std::size_t User::get_number_of_logins() const { return number_of_logins; }
