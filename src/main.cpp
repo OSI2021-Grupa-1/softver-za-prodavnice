@@ -9,6 +9,8 @@
 #include "ftxui/dom/elements.hpp" // for text, hbox, separator, Element, operator|, vbox, border
 #include "ftxui/util/ref.hpp"	  // for ref
 
+#include "softver-za-prodavnice/user.hpp"
+
 int main() {
 	std::string name{};
 	std::string password{};
