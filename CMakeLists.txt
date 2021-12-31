@@ -29,7 +29,7 @@ add_subdirectory(${FTXUI_DIR})
 # exe
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.?pp")
 add_executable(${PROJECT_NAME} ${SOURCES})
-target_include_directories(${PROJECT_NAME} PRIVATE ${FTXUI_DIR}/include src)
+target_include_directories(${PROJECT_NAME} PRIVATE ${FTXUI_DIR}/include src include)
 target_link_libraries(${PROJECT_NAME} 
                         PRIVATE ftxui::screen
                         PRIVATE ftxui::dom

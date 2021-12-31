@@ -1,8 +1,8 @@
-#include "include/user.hpp"
+#include "softver-za-prodavnice/user.hpp"
 
-void User::set_username(string usr) { username = usr; }
+void User::set_username(std::string usr) { username = usr; }
 
-void User::set_password(string pw) { password = pw; }
+void User::set_password(std::string pw) { password = pw; }
 
 std::string User::get_username() const { return username; }
 
