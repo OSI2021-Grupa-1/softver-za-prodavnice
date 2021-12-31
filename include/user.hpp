@@ -16,4 +16,14 @@ class User {
 	void change_password();
 	void log_out();
 
+
+	// interfejsi
+	void change_password_interface();
+	void log_out_interface();
+	
+
+  private:
+	bool check_password_validity(std::string input);
+	bool passwords_equal(std::string input_1, std::string input_2);
+
 };
