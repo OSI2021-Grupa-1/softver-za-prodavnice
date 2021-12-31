@@ -20,6 +20,5 @@ class Boss : public User {
 	Report generate_weekly_report();
 	Report generate_monthly_report();
 	Report generate_yearly_report();
-	Report generate_yearly_report();
 	Report generate_arbitrarily_report();
 };

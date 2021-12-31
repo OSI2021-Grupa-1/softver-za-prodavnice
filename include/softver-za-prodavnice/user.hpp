@@ -13,7 +13,7 @@ class User {
 	std::string get_username() const;
 	std::string get_password() const;
 
-	void change_password();
+	void change_password(const std::string& new_pw);
 	void log_out();
 
 
@@ -23,7 +23,7 @@ class User {
 	
 
   private:
-	bool check_password_validity(std::string input);
-	bool passwords_equal(std::string input_1, std::string input_2);
+	bool check_password_validity(const std::string& input);
+	bool passwords_equal(const std::string& original, const std::string& confirmation);
 
 };
