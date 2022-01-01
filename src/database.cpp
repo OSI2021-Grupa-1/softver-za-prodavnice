@@ -61,8 +61,9 @@ size_t Database::find_user(const std::string& username) const {
 	for (size_t i = 0; i < paths.get_size(); i++) {
 		if (username == user_data[i].get_username()) return i;
 	}
-	throw std::exception(); // ne bi ga trebao nikad baciti jer se username
-							// prosljedjuje iz main-a i vec je provjeren
+	throw std::invalid_argument("User couldn't be found");
+	// ne bi ga trebao nikad baciti jer se username
+	// prosljedjuje iz main-a i vec je provjeren
 }
 
 void Database::write_users_to_file(const std::string path) {
@@ -72,7 +73,7 @@ void Database::write_users_to_file(const std::string path) {
 		}
 		file.close();
 	} else {
-		throw std::exception();
+		throw std::invalid_argument("File couldn't be opened");
 	}
 }
 
@@ -83,7 +84,7 @@ void Database::write_items_to_file(const std::string path) {
 		}
 		file.close();
 	} else {
-		throw std::exception();
+		throw std::invalid_argument("File couldn't be opened");
 	}
 }
 
@@ -175,7 +176,7 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 		} while (date <= end_date);
 		file.close();
 	} else
-		throw std::exception();
+		throw std::invalid_argument("File couldn't be opened");
 	return report;
 }
 
@@ -244,7 +245,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << std::setw(width) << std::setfill('=') << "" << '\n';
 
 	} else {
-		throw std::exception();
+		throw std::invalid_argument("File couldn't be opened");
 	}
 }
 
