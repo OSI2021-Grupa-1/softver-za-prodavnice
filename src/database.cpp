@@ -129,7 +129,7 @@ bool Database::lesser_quantity(const Item& item, double quantity) {
 	return false;
 }
 
-bool Database::find_item(const std::string& other_barcode, const int& quantity) {
+bool Database::check_item_availability(const std::string& other_barcode, const int& quantity) {
 
 	int i;
 	for (i = 0; i < item_data.size(); i++) {
@@ -138,6 +138,52 @@ bool Database::find_item(const std::string& other_barcode, const int& quantity) 
 	if (i == item_data.size()) return false;
 	if (item_data[i].get_quantity() < quantity) return false;
 	return true;
+}
+
+std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date, const int& end_date, std::string& path) {
+	std::vector<Item> report;
+	std::string barcode, name, price, quantity, day, month, year;
+	int position, date;
+	if (auto file = std::ifstream(path)) {
+		do {
+			std::getline(file, barcode, ',');
+			std::getline(file, name, ',');
+			std::getline(file, price, ',');
+			std::getline(file, quantity, ',');
+			std::getline(file, day, '/');
+			std::getline(file, month, '/');
+			std::getline(file, year);
+			
+			date = stoi(year + month +day);
+
+			if (date >= start_date && date <= end_date){
+				if (search_item_in_vector(items, barcode) != -1) { // Provjerava da li se za ucitani artikal trazi izvjestaj 
+					if ((position = search_item_in_vector(report, barcode)) == -1) { // Provjerava da li se artikal vec nalazi u izvjestaju
+						Item new_item(barcode, name, std::stod(price), std::stod(quantity));
+						report.push_back(new_item);
+					} else {
+						report[position].set_price(std::stod(price) +
+												   report[position].get_price());
+						report[position].set_quantity(std::stod(quantity) +
+													  report[position].get_quantity());
+					}
+				}
+			}
+		} while (date <= end_date);
+		file.close();
+	} else 
+		throw std::exception();
+	return report;
+
+}
+
+int Database::search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode) {
+	if (vect.size() == 0) return -1;
+	int i;
+	for (i = 0; i < vect.size(); i++) {
+		if (vect[i].get_barcode() == barcode) return i;
+	}
+	 return -1;
 }
 
 // provjera stanja dostupnosti se provjerava prije ove funkcije

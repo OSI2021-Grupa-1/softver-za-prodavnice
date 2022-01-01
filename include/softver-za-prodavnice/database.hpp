@@ -53,6 +53,10 @@ class Database {
 	bool lesser_quantity(const Item& item, double quantity);
 	std::vector<Item> filter_name(std::string substr);
 
+	bool check_item_availability(const std::string& other_barcode, const int& quantity);
+
+	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date, const int& end_date, std::string& path);
+	int search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode);
 	bool find_item(const std::string& other_barcode, const int& quantity);
 	bool search_items(std::string barcode);
 	std::vector<Item> filter(std::function<bool(const Item&)> f);
