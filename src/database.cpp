@@ -50,7 +50,8 @@ bool Database::is_password_correct(const std::string& usr, const std::string& pw
 		return false;
 }
 
-bool Database::are_passwords_equal(const std::string& original, const std::string& confirmation) const {
+bool Database::are_passwords_equal(const std::string& original,
+								   const std::string& confirmation) const {
 	if (original == confirmation) return true;
 	else
 		return false;
@@ -140,7 +141,8 @@ bool Database::check_item_availability(const std::string& other_barcode, const i
 	return true;
 }
 
-std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date, const int& end_date, std::string& path) {
+std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date,
+										  const int& end_date, std::string& path) {
 	std::vector<Item> report;
 	std::string barcode, name, price, quantity, day, month, year;
 	int position, date;
@@ -153,17 +155,18 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 			std::getline(file, day, '/');
 			std::getline(file, month, '/');
 			std::getline(file, year);
-			
-			date = stoi(year + month +day);
 
-			if (date >= start_date && date <= end_date){
-				if (search_item_in_vector(items, barcode) != -1) { // Provjerava da li se za ucitani artikal trazi izvjestaj 
-					if ((position = search_item_in_vector(report, barcode)) == -1) { // Provjerava da li se artikal vec nalazi u izvjestaju
+			date = stoi(year + month + day);
+
+			if (date >= start_date && date <= end_date) {
+				if (search_item_in_vector(items, barcode) !=
+					-1) { // Provjerava da li se za ucitani artikal trazi izvjestaj
+					if ((position = search_item_in_vector(report, barcode)) ==
+						-1) { // Provjerava da li se artikal vec nalazi u izvjestaju
 						Item new_item(barcode, name, std::stod(price), std::stod(quantity));
 						report.push_back(new_item);
 					} else {
-						report[position].set_price(std::stod(price) +
-												   report[position].get_price());
+						report[position].set_price(std::stod(price) + report[position].get_price());
 						report[position].set_quantity(std::stod(quantity) +
 													  report[position].get_quantity());
 					}
@@ -171,10 +174,9 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 			}
 		} while (date <= end_date);
 		file.close();
-	} else 
+	} else
 		throw std::exception();
 	return report;
-
 }
 
 int Database::search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode) {
@@ -183,16 +185,17 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 	for (i = 0; i < vect.size(); i++) {
 		if (vect[i].get_barcode() == barcode) return i;
 	}
-	 return -1;
+	return -1;
 }
 
 // provjera stanja dostupnosti se provjerava prije ove funkcije
-void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username) {
+void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
+								std::string username) {
 	// nije jos definisana putanja gdje ce se fajl praviti
 	// std::string path = paths.get_path("");
 
 	std::string current_time = current_date_time();
-	std::string file_name = util::generete_receipt_file_name(current_time); 
+	std::string file_name = util::generete_receipt_file_name(current_time);
 
 	std::fstream file;
 	file.open(file_name, std::ios::out);
@@ -205,7 +208,8 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << util::helper(width, "Naziv prodavnice") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << current_time << '\n';
-		file << std::left << "Blagajnik: " << "ph" << '\n';
+		file << std::left << "Blagajnik: "
+			 << "ph" << '\n';
 		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
 		// ta staticka promjenljiva bi se morala cuvati u fajlu
 		file << "\n";
@@ -220,10 +224,12 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 			if (sold_items[i].first.get_name().length() >= 20)
 				file << std::left << std::setw(23) << sold_items[i].first.get_name() << "\n"
 					 << std::string(23, ' ') << std::setw(9) << std::fixed << std::setprecision(2)
-					 << price << std::setw(8) << quantity << std::setw(10) << price * quantity << "\n";
+					 << price << std::setw(8) << quantity << std::setw(10) << price * quantity
+					 << "\n";
 			else
-				file << std::left << std::setw(23) << sold_items[i].first.get_name() << std::setw(9) << std::fixed << std::setprecision(2)
-					 << price << std::setw(8) << quantity << std::setw(10) << price * quantity << "\n";
+				file << std::left << std::setw(23) << sold_items[i].first.get_name() << std::setw(9)
+					 << std::fixed << std::setprecision(2) << price << std::setw(8) << quantity
+					 << std::setw(10) << price * quantity << "\n";
 		}
 		file << std::setw(width) << std::setfill('-') << "" << '\n';
 		file << std::setfill(' ');
@@ -238,7 +244,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << std::setw(width) << std::setfill('=') << "" << '\n';
 
 	} else {
-		throw std::exception("File couldn't be opened\n");
+		throw std::exception();
 	}
 }
 

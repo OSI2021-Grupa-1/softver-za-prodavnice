@@ -1,1 +1,6 @@
-int main() { return 1; }
+#include <cassert>
+
+int main() {
+	assert(1 == 2);
+	return 0;
+}

@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.14)
 
 project (softver-za-prodavnice)
 
+if(UNIX)
+  message(STATUS "Is linux")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif()
+
+if(WIN32)
+  message(STATUS "Is linux")
+endif()
+
+
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "")
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
   message(STATUS "Exporting compile_commands.json")
@@ -24,8 +34,8 @@ endif()
 #add library folder
 
 set(FTXUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/ftxui)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 add_subdirectory(${FTXUI_DIR})
+
 
 # exe
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.?pp")
@@ -37,3 +47,6 @@ target_link_libraries(${PROJECT_NAME}
   			                PRIVATE ftxui::component)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+
+enable_testing()
+add_subdirectory(tests)

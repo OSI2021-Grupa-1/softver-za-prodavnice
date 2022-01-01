@@ -1,10 +1,10 @@
 #pragma once
 #pragma warning(disable : 4996) // zbog localtime(u current_date_time funkciji), moze biti nesigurno
 #include <functional>
-#include <vector>
-#include <time.h>
 #include <iomanip>
 #include <ostream>
+#include <vector>
+#include <time.h>
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
