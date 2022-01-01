@@ -13,7 +13,7 @@ std::vector<User> Database::get_user_data() const { return user_data; }
 std::vector<Item> Database::get_item_data() const { return item_data; }
 
 
-void Database::delete_users(const std::vector<User>& users) {
+void Database::delete_user(const std::vector<User>& users) {
 	for (int i = 0; i < users.size(); i++)
 		user_data.erase(std::remove(user_data.begin(), user_data.end(), users[i]), user_data.end());
 
@@ -23,7 +23,7 @@ void Database::delete_users(const std::vector<User>& users) {
 			path = paths.get_path(i).second;
 			break;
 		}
-	write_in_file(path);
+	write_users_to_file(path);
 }
 
 void Database::delete_item(const std::vector<Item>& items) {
@@ -36,5 +36,32 @@ void Database::delete_item(const std::vector<Item>& items) {
 			path = paths.get_path(i).second;
 			break;
 		}
-	write_in_file(path);
+	write_items_to_file(path);
+}
+
+
+void Database::write_users_to_file(const std::string path) {
+	if (auto file = std::ofstream(path)) {
+		for (size_t i = 0; i < user_data.size(); ++i) {
+			file << user_data[i].get_username() << "φ" << user_data[i].get_password() << "φ"
+				 /*
+				 << user_data[i].get_position()*/ << "φ" << user_data[i].get_number_of_logins() //treba preklopiti operator << u structu Position pa nakon toga ukloniti komentar
+				 << "φ\n";                                                                      //da se upisuje i pozicija korisnika u fajl
+		}
+		file.close();
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
+}
+
+void Database::write_items_to_file(const std::string path) {
+	if (auto file = std::ofstream(path)) {
+		for (size_t i = 0; i < item_data.size(); ++i) {
+			file << item_data[i].get_barcode() << "φ" << item_data[i].get_name() << "φ"
+				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "φ\n";
+		}
+		file.close();
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
 }

@@ -23,8 +23,9 @@ class Database {
 	std::vector<User> get_user_data() const;
 	std::vector<Item> get_item_data() const;
 
-	void delete_users(const std::vector<User>& users);
+	void delete_user(const std::vector<User>& users);
 	void delete_item(const std::vector<Item>& items);
 
-	void write_in_file(const std::string path) {} // Elena radi
+	void write_users_to_file(const std::string path); 
+	void write_items_to_file(const std::string path);
 };
