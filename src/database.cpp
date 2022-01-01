@@ -100,22 +100,19 @@ bool Database::search_items(std::string barcode) {
 }
 
 std::vector<Item> Database::filter(std::function<bool(const Item&, double)> f, double comparator) {
-	std::vector<Item> new_vector;
+	std::vector<Item> ret;
 	for (size_t i = 0; i < item_data.size(); ++i) {
-		if (f(item_data[i], comparator)) new_vector.push_back(item_data[i]);
+		if (f(item_data[i], comparator)) ret.push_back(item_data[i]);
 	}
-	return new_vector;
+	return ret;
 }
 
-bool Database::find_item(const std::string& other_barcode, const int& quantity) {
-
-	int i;
-	for (i = 0; i < item_data.size(); i++) {
-		if (item_data[i].get_barcode() == other_barcode) break;
+std::vector<Item> Database::filter_name(std::string substr) {
+	std::vector<Item> ret;
+	for (size_t i = 0; i < item_data.size(); ++i) {
+		if (item_data[i].get_name().find(substr) != std::string::npos) ret.push_back(item_data[i]);
 	}
-	if (i == item_data.size()) return false;
-	if (item_data[i].get_quantity() < quantity) return false;
-	return true;
+	return ret;
 }
 
 bool Database::greater_price(const Item& item, double price) {
@@ -140,4 +137,15 @@ bool Database::lesser_quantity(const Item& item, double quantity) {
 	if (item.get_quantity() < quantity) return true;
 	else
 		return false;
+}
+
+bool Database::find_item(const std::string& other_barcode, const int& quantity) {
+
+	int i;
+	for (i = 0; i < item_data.size(); i++) {
+		if (item_data[i].get_barcode() == other_barcode) break;
+	}
+	if (i == item_data.size()) return false;
+	if (item_data[i].get_quantity() < quantity) return false;
+	return true;
 }

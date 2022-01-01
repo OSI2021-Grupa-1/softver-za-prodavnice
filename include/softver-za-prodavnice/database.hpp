@@ -45,7 +45,7 @@ class Database {
 	bool greater_quantity(const Item& item, double quantity);
 	bool lesser_price(const Item& item, double price);
 	bool lesser_quantity(const Item& item, double quantity);
-
+	std::vector<Item> filter_name(std::string substr);
 
 	bool find_item(const std::string& other_barcode, const int& quantity);
 };
