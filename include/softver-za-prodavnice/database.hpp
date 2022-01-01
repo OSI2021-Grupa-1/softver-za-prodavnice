@@ -24,9 +24,6 @@ class Database {
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);
 
-	std::string get_user_path() const;
-	std::string get_item_path() const;
-
 	std::vector<User> get_user_data() const;
 	std::vector<Item> get_item_data() const;
 
@@ -38,7 +35,6 @@ class Database {
 	bool are_passwords_equal(const std::string& original, const std::string& confirmation) const;
 
 	size_t find_user(const std::string& usr) const;
-	std::string find_path(const std::string& key) const;
 
 	void write_users_to_file(const std::string path);
 	void write_items_to_file(const std::string path);
@@ -55,10 +51,7 @@ class Database {
 
 	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date, const int& end_date, std::string& path);
 	int search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode);
-	bool find_item(const std::string& other_barcode, const int& quantity);
-	bool search_items(std::string barcode);
-	std::vector<Item> filter(std::function<bool(const Item&)> f);
-
+	
 	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
 
   private: // za lokalne metode
