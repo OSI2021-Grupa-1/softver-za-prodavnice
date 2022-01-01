@@ -64,12 +64,6 @@ size_t Database::find_user(const std::string& username) const {
 							// prosljedjuje iz main-a i vec je provjeren
 }
 
-std::string Database::find_path(const std::string& key) const {
-	for (int i = 0; i < paths.get_size(); i++)
-		if (key == paths.get_path(key)) return paths.get_path(key);
-	return {}; // privremeno neka vraca prazan string
-}
-
 void Database::write_users_to_file(const std::string path) {
 	if (auto file = std::ofstream(path)) {
 		for (size_t i = 0; i < user_data.size(); ++i) {
@@ -144,4 +138,70 @@ bool Database::find_item(const std::string& other_barcode, const int& quantity) 
 	if (i == item_data.size()) return false;
 	if (item_data[i].get_quantity() < quantity) return false;
 	return true;
+}
+
+// provjera stanja dostupnosti se provjerava prije ove funkcije
+void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username) {
+	// nije jos definisana putanja gdje ce se fajl praviti
+	// std::string path = paths.get_path("");
+
+	std::string current_time = current_date_time();
+	std::string file_name = util::generete_receipt_file_name(current_time); 
+
+	std::fstream file;
+	file.open(file_name, std::ios::out);
+	double sum = 0;
+	if (file.is_open()) {
+		int width = 48;
+		file << std::setw(width) << std::setfill('=') << "\n";
+		file << std::format("{:^48}\n", "Naziv prodavnice");
+		file << std::format("{:^48}\n", "Adresa");
+		file << std::format("{:^48}\n", "Broj telefona");
+		file << std::setw(width) << std::setfill('-') << '\n';
+		file << std::left << "Datum i vrijeme: " << current_time << '\n';
+		file << std::left << "Blagajnik: " << "ph" << '\n';
+		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
+		// ta staticka promjenljiva bi se morala cuvati u fajlu
+		file << "\n";
+		file << std::left << std::setw(27) << std::setfill(' ') << "Artikal" << std::setw(7)
+			 << "Cijena" << std::setw(6) << "Kol." << std::setw(8) << "Ukupno" << std::endl;
+		file << std::setw(width) << std::setfill('-') << "" << '\n';
+		for (int i = 0; i < sold_items.size(); i++) {
+			double price = sold_items[i].first.get_price();
+			double quantity = sold_items[i].second;
+			sum += price * quantity;
+			file << std::setprecision(2);
+			if (sold_items[i].first.get_name().length() >= 20)
+				file << std::left << std::setw(23) << sold_items[i].first.get_name() << "\n"
+					 << std::string(23, ' ') << std::setw(9) << std::fixed << std::setprecision(2)
+					 << price << std::setw(8) << quantity << std::setw(10) << price * quantity << "\n";
+			else
+				file << std::left << std::setw(23) << sold_items[i].first.get_name() << std::setw(9) << std::fixed << std::setprecision(2)
+					 << price << std::setw(8) << quantity << std::setw(10) << price * quantity << "\n";
+		}
+		file << std::setw(width) << std::setfill('-') << "" << '\n';
+		file << std::setfill(' ');
+		file << "UKUPNO:" << std::string(33, ' ') << sum << std::endl;
+		file << std::setw(width) << std::setfill('-') << "" << '\n';
+		file << std::setfill(' ');
+		file << std::left << std::setw(15) << "Vrsta poreza" << std::setw(12) << "Stopa (\%)"
+			 << std::setw(13) << "Osnovica" << std::setw(8) << "Iznos" << std::endl;
+		file << std::left << std::setw(15) << "PDV 17%" << std::setw(12) << "17.00" << std::setw(13)
+			 << sum - sum * 0.17 << std::setw(8) << sum * 0.17 << std::endl; // PDV hardkodovan
+		file << std::format("{:^48}\n", "Hvala na posjeti!");
+		file << std::setw(width) << std::setfill('=') << "" << '\n';
+
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
+}
+
+const std::string Database::current_date_time() {
+	time_t now = time(0);
+	struct tm tstruct;
+	char buf[80];
+	tstruct = *localtime(&now);
+	strftime(buf, sizeof(buf), "%d.%m.%Y. %X", &tstruct);
+
+	return buf;
 }

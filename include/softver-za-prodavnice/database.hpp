@@ -1,5 +1,11 @@
 #pragma once
+#include <vector>
 #include <functional>
+#include <time.h>
+#pragma warning(disable : 4996) //zbog localtime(u current_date_time funkciji), moze biti nesigurno
+#include<iomanip>
+#include <format>
+
 #include <ostream>
 #include <vector>
 #include "ostream"
@@ -48,4 +54,11 @@ class Database {
 	std::vector<Item> filter_name(std::string substr);
 
 	bool find_item(const std::string& other_barcode, const int& quantity);
+	bool search_items(std::string barcode);
+	std::vector<Item> filter(std::function<bool(const Item&)> f);
+
+	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
+
+  private: // za lokalne metode
+	const std::string current_date_time();
 };
