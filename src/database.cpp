@@ -99,10 +99,10 @@ bool Database::search_items(std::string barcode) {
 	return false;
 }
 
-std::vector<Item> Database::filter(std::function<bool(const Item&)> f) {
+std::vector<Item> Database::filter(std::function<bool(const Item&, double)> f, double comparator) {
 	std::vector<Item> new_vector;
 	for (size_t i = 0; i < item_data.size(); ++i) {
-		if (f(item_data[i])) new_vector.push_back(item_data[i]);
+		if (f(item_data[i], comparator)) new_vector.push_back(item_data[i]);
 	}
 	return new_vector;
 }
@@ -116,4 +116,28 @@ bool Database::find_item(const std::string& other_barcode, const int& quantity) 
 	if (i == item_data.size()) return false;
 	if (item_data[i].get_quantity() < quantity) return false;
 	return true;
+}
+
+bool Database::greater_price(const Item& item, double price) {
+	if (item.get_price() > price) return true;
+	else
+		return false;
+}
+
+bool Database::greater_quantity(const Item& item, double quantity) {
+	if (item.get_quantity() > quantity) return true;
+	else
+		return false;
+}
+
+bool Database::lesser_price(const Item& item, double price) {
+	if (item.get_price() < price) return true;
+	else
+		return false;
+}
+
+bool Database::lesser_quantity(const Item& item, double quantity) {
+	if (item.get_quantity() < quantity) return true;
+	else
+		return false;
 }

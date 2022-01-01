@@ -40,8 +40,12 @@ class Database {
 	void write_items_to_file(const std::string path);
 
 	bool search_items(std::string barcode);
-	std::vector<Item> filter(std::function<bool(const Item&)> f);
-	void write_in_file(const std::string path) {} // Elena radi
+	std::vector<Item> filter(std::function<bool(const Item&, double)> f, double comparator);
+	bool greater_price(const Item& item, double price);
+	bool greater_quantity(const Item& item, double quantity);
+	bool lesser_price(const Item& item, double price);
+	bool lesser_quantity(const Item& item, double quantity);
+
 
 	bool find_item(const std::string& other_barcode, const int& quantity);
 };

@@ -1,6 +1,6 @@
 #include "softver-za-prodavnice/item.hpp"
 
-Item::Item(std::string barcode, std::string name, double price, std::size_t quantity)
+Item::Item(std::string barcode, std::string name, double price, double quantity)
 	: barcode(barcode), name(name), price(price), quantity(quantity) {}
 
 Item::Item(const Item& other)
@@ -14,7 +14,7 @@ bool Item::operator==(const Item& other) const {
 
 void Item::set_price(double price) { this->price = price; }
 
-void Item::set_quantity(std::size_t quantity) { this->quantity = quantity; }
+void Item::set_quantity(double quantity) { this->quantity = quantity; }
 
 std::string Item::get_barcode() const { return barcode; }
 
@@ -22,7 +22,7 @@ std::string Item::get_name() const { return name; }
 
 double Item::get_price() const { return price; }
 
-std::size_t Item::get_quantity() const { return quantity; }
+double Item::get_quantity() const { return quantity; }
 
 std::ostream& operator<<(std::ostream& os, const Item& item) {
 	os << item.barcode << "φ" << item.name << "φ" << item.price << "φ" << item.quantity;
