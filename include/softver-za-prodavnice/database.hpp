@@ -7,8 +7,6 @@
 #include <format>
 
 #include <ostream>
-#include <vector>
-#include "ostream"
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
