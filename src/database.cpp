@@ -38,7 +38,9 @@ void Database::change_password(const std::string& usr, const std::string& new_pw
 	size_t index = find_user(usr);
 	user_data[index].set_password(new_pw);
 
-	// upis u fajl
+	std::string path = paths.get_path("korisnici");
+
+	write_users_to_file(path);
 }
 
 bool Database::password_correct(const std::string& usr, const std::string& pw_input) const {
@@ -78,7 +80,7 @@ void Database::write_users_to_file(const std::string path) {
 				 << "φ"
 				 << user_data[i].get_number_of_logins() // treba preklopiti operator << u structu
 														// Position pa nakon toga ukloniti komentar
-				 << "φ\n"; // da se upisuje i pozicija korisnika u fajl
+				 << "\n"; // da se upisuje i pozicija korisnika u fajl
 		}
 		file.close();
 	} else {
@@ -90,40 +92,7 @@ void Database::write_items_to_file(const std::string path) {
 	if (auto file = std::ofstream(path)) {
 		for (size_t i = 0; i < item_data.size(); ++i) {
 			file << item_data[i].get_barcode() << "φ" << item_data[i].get_name() << "φ"
-				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "φ\n";
-		}
-		file.close();
-	} else {
-		throw std::exception("File couldn't be opened\n");
-	}
-}
-
-bool Database::search_items(std::string barcode) {
-	for (size_t i = 0; i < item_data.size(); ++i) {
-		if (item_data[i].get_barcode() == barcode) return true;
-	}
-	return false;
-}
-
-void Database::write_users_to_file(const std::string path) {
-	if (auto file = std::ofstream(path)) {
-		for (size_t i = 0; i < user_data.size(); ++i) {
-			file << user_data[i].get_username() << "φ" << user_data[i].get_password() << "φ"
-				 /*
-				 << user_data[i].get_position()*/ << "φ" << user_data[i].get_number_of_logins() //treba preklopiti operator << u structu Position pa nakon toga ukloniti komentar
-				 << "φ\n";                                                                      //da se upisuje i pozicija korisnika u fajl
-		}
-		file.close();
-	} else {
-		throw std::exception("File couldn't be opened\n");
-	}
-}
-
-void Database::write_items_to_file(const std::string path) {
-	if (auto file = std::ofstream(path)) {
-		for (size_t i = 0; i < item_data.size(); ++i) {
-			file << item_data[i].get_barcode() << "φ" << item_data[i].get_name() << "φ"
-				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "φ\n";
+				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "\n";
 		}
 		file.close();
 	} else {
