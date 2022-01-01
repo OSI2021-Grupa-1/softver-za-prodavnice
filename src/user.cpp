@@ -12,8 +12,7 @@ User::User(const User& other)
 
 bool User::operator==(const User& other) const {
 	if (username == other.username) return true;
-	else
-		return false;
+	return false;
 }
 
 std::string User::get_username() const { return username; }

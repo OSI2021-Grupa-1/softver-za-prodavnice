@@ -30,8 +30,8 @@ class Database {
 	void delete_items(const std::vector<Item>& items);
 
 	void change_password(const std::string& usr, const std::string& new_pw);
-	bool password_correct(const std::string& usr, const std::string& input) const;
-	bool passwords_equal(const std::string& original, const std::string& confirmation) const;
+	bool is_password_correct(const std::string& usr, const std::string& input) const;
+	bool are_passwords_equal(const std::string& original, const std::string& confirmation) const;
 
 	size_t find_user(const std::string& usr) const;
 	std::string find_path(const std::string& key) const;
@@ -39,7 +39,7 @@ class Database {
 	void write_users_to_file(const std::string path);
 	void write_items_to_file(const std::string path);
 
-	bool search_items(std::string barcode);
+	bool is_contained(std::string barcode);
 	std::vector<Item> filter(std::function<bool(const Item&, double)> f, double comparator);
 	bool greater_price(const Item& item, double price);
 	bool greater_quantity(const Item& item, double quantity);

@@ -42,7 +42,7 @@ void Database::change_password(const std::string& usr, const std::string& new_pw
 	write_users_to_file(path);
 }
 
-bool Database::password_correct(const std::string& usr, const std::string& pw_input) const {
+bool Database::is_password_correct(const std::string& usr, const std::string& pw_input) const {
 	size_t index = find_user(usr);
 
 	if (pw_input == user_data[index].get_password()) return true;
@@ -50,7 +50,7 @@ bool Database::password_correct(const std::string& usr, const std::string& pw_in
 		return false;
 }
 
-bool Database::passwords_equal(const std::string& original, const std::string& confirmation) const {
+bool Database::are_passwords_equal(const std::string& original, const std::string& confirmation) const {
 	if (original == confirmation) return true;
 	else
 		return false;
@@ -92,7 +92,7 @@ void Database::write_items_to_file(const std::string path) {
 	}
 }
 
-bool Database::search_items(std::string barcode) {
+bool Database::is_contained(std::string barcode) {
 	for (size_t i = 0; i < item_data.size(); ++i) {
 		if (item_data[i].get_barcode() == barcode) return true;
 	}
@@ -117,26 +117,22 @@ std::vector<Item> Database::filter_name(std::string substr) {
 
 bool Database::greater_price(const Item& item, double price) {
 	if (item.get_price() > price) return true;
-	else
-		return false;
+	return false;
 }
 
 bool Database::greater_quantity(const Item& item, double quantity) {
 	if (item.get_quantity() > quantity) return true;
-	else
-		return false;
+	return false;
 }
 
 bool Database::lesser_price(const Item& item, double price) {
 	if (item.get_price() < price) return true;
-	else
-		return false;
+	return false;
 }
 
 bool Database::lesser_quantity(const Item& item, double quantity) {
 	if (item.get_quantity() < quantity) return true;
-	else
-		return false;
+	return false;
 }
 
 bool Database::find_item(const std::string& other_barcode, const int& quantity) {

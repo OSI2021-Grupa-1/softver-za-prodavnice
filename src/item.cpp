@@ -8,8 +8,7 @@ Item::Item(const Item& other)
 
 bool Item::operator==(const Item& other) const {
 	if (barcode == other.barcode) return true;
-	else
-		return false;
+	return false;
 }
 
 void Item::set_price(double price) { this->price = price; }
