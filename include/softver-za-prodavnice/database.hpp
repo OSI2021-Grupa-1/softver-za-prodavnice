@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <functional>
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
@@ -33,5 +34,9 @@ class Database {
 	size_t find_user(const std::string& usr) const;
 	std::string find_path(const std::string& key) const;
 
-	void write_in_file(const std::string path) {} // Elena radi
+	void write_users_to_file(const std::string path);
+	void write_items_to_file(const std::string path);
+
+	bool search_items(std::string barcode);
+	std::vector<Item> filter(std::function<bool(const Item&)> f);
 };

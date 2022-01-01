@@ -19,7 +19,7 @@ void Database::delete_users(const std::vector<User>& users) {
 
 	std::string path = paths.get_path("korisnici");
 	
-	write_in_file(path);
+	write_users_to_file(path);
 }
 
 void Database::delete_items(const std::vector<Item>& items) {
@@ -28,7 +28,7 @@ void Database::delete_items(const std::vector<Item>& items) {
 
 	std::string path = paths.get_path("artikli_na_stanju");
 
-	write_in_file(path);
+	write_items_to_file(path);
 }
 
 void Database::change_password(const std::string& usr, const std::string& new_pw) {
@@ -66,4 +66,82 @@ std::string Database::find_path(const std::string& key) const {
 	for (int i = 0; i < paths.get_size(); i++)
 		if(key == paths.get_path(key))
 			return paths.get_path(key);
+}
+
+void Database::write_users_to_file(const std::string path) {
+	if (auto file = std::ofstream(path)) {
+		for (size_t i = 0; i < user_data.size(); ++i) {
+			file << user_data[i].get_username() << "φ" << user_data[i].get_password()
+				 << "φ"
+				 /*
+				 << user_data[i].get_position()*/
+				 << "φ"
+				 << user_data[i].get_number_of_logins() // treba preklopiti operator << u structu
+														// Position pa nakon toga ukloniti komentar
+				 << "φ\n"; // da se upisuje i pozicija korisnika u fajl
+		}
+		file.close();
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
+}
+
+void Database::write_items_to_file(const std::string path) {
+	if (auto file = std::ofstream(path)) {
+		for (size_t i = 0; i < item_data.size(); ++i) {
+			file << item_data[i].get_barcode() << "φ" << item_data[i].get_name() << "φ"
+				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "φ\n";
+		}
+		file.close();
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
+}
+
+bool Database::search_items(std::string barcode) {
+	for (size_t i = 0; i < item_data.size(); ++i) {
+		if (item_data[i].get_barcode() == barcode) return true;
+	}
+	return false;
+}
+
+void Database::write_users_to_file(const std::string path) {
+	if (auto file = std::ofstream(path)) {
+		for (size_t i = 0; i < user_data.size(); ++i) {
+			file << user_data[i].get_username() << "φ" << user_data[i].get_password() << "φ"
+				 /*
+				 << user_data[i].get_position()*/ << "φ" << user_data[i].get_number_of_logins() //treba preklopiti operator << u structu Position pa nakon toga ukloniti komentar
+				 << "φ\n";                                                                      //da se upisuje i pozicija korisnika u fajl
+		}
+		file.close();
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
+}
+
+void Database::write_items_to_file(const std::string path) {
+	if (auto file = std::ofstream(path)) {
+		for (size_t i = 0; i < item_data.size(); ++i) {
+			file << item_data[i].get_barcode() << "φ" << item_data[i].get_name() << "φ"
+				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "φ\n";
+		}
+		file.close();
+	} else {
+		throw std::exception("File couldn't be opened\n");
+	}
+}
+
+bool Database::search_items(std::string barcode) {
+	for (size_t i = 0; i < item_data.size(); ++i) {
+		if (item_data[i].get_barcode() == barcode) return true;
+	}
+	return false;
+}
+
+std::vector<Item> Database::filter(std::function<bool(const Item&)> f) {
+	std::vector<Item> new_vector;
+	for (size_t i = 0; i < item_data.size(); ++i) {
+		if (f(item_data[i])) new_vector.push_back(item_data[i]);
+	}
+	return new_vector;
 }
