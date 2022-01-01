@@ -12,13 +12,12 @@ void Database::set_item_data(std::vector<Item> item_data) { this->item_data = it
 std::vector<User> Database::get_user_data() const { return user_data; }
 std::vector<Item> Database::get_item_data() const { return item_data; }
 
-
 void Database::delete_users(const std::vector<User>& users) {
 	for (int i = 0; i < users.size(); i++)
 		user_data.erase(std::remove(user_data.begin(), user_data.end(), users[i]), user_data.end());
 
 	std::string path = paths.get_path("korisnici");
-	
+
 	write_users_to_file(path);
 }
 
@@ -32,7 +31,7 @@ void Database::delete_items(const std::vector<Item>& items) {
 }
 
 void Database::change_password(const std::string& usr, const std::string& new_pw) {
-	if(new_pw.length() < 8)
+	if (new_pw.length() < 8)
 		throw std::length_error("Password too short"); // mora se primiti u interfejsu
 
 	size_t index = find_user(usr);
@@ -61,42 +60,35 @@ size_t Database::find_user(const std::string& username) const {
 	for (size_t i = 0; i < paths.get_size(); i++) {
 		if (username == user_data[i].get_username()) return i;
 	}
-	throw std::exception("User not found"); // ne bi ga trebao nikad baciti jer se username prosljedjuje iz main-a i vec je provjeren
+	throw std::exception(); // ne bi ga trebao nikad baciti jer se username
+							// prosljedjuje iz main-a i vec je provjeren
 }
 
 std::string Database::find_path(const std::string& key) const {
 	for (int i = 0; i < paths.get_size(); i++)
-		if(key == paths.get_path(key))
-			return paths.get_path(key);
+		if (key == paths.get_path(key)) return paths.get_path(key);
+	return {}; // privremeno neka vraca prazan string
 }
 
 void Database::write_users_to_file(const std::string path) {
 	if (auto file = std::ofstream(path)) {
 		for (size_t i = 0; i < user_data.size(); ++i) {
-			file << user_data[i].get_username() << "φ" << user_data[i].get_password()
-				 << "φ"
-				 /*
-				 << user_data[i].get_position()*/
-				 << "φ"
-				 << user_data[i].get_number_of_logins() // treba preklopiti operator << u structu
-														// Position pa nakon toga ukloniti komentar
-				 << "\n"; // da se upisuje i pozicija korisnika u fajl
+			file << user_data[i] << "\n"; // da se upisuje i pozicija korisnika u fajl
 		}
 		file.close();
 	} else {
-		throw std::exception("File couldn't be opened\n");
+		throw std::exception();
 	}
 }
 
 void Database::write_items_to_file(const std::string path) {
 	if (auto file = std::ofstream(path)) {
 		for (size_t i = 0; i < item_data.size(); ++i) {
-			file << item_data[i].get_barcode() << "φ" << item_data[i].get_name() << "φ"
-				 << item_data[i].get_quantity() << "φ" << item_data[i].get_price() << "\n";
+			file << item_data[i] << "\n";
 		}
 		file.close();
 	} else {
-		throw std::exception("File couldn't be opened\n");
+		throw std::exception();
 	}
 }
 

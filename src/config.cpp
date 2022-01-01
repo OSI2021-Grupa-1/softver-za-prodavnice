@@ -9,12 +9,11 @@ std::string Config::get_path(std::string key) const {
 		if (paths[i].first == "korisnici") {
 			return paths[i].second;
 		}
+	return {};
 }
-
 
 void Config::load_paths(const std::string& path) {
 	try {
-
 		paths = util::insert_pairs(util::get_lines(path));
 	} catch (std::invalid_argument e) {
 		std::cout << e.what();
