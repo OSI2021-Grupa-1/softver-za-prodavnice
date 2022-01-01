@@ -1,10 +1,10 @@
 #pragma once
-#include <vector>
 #include <functional>
+#include <vector>
 #include <time.h>
-#pragma warning(disable : 4996) //zbog localtime(u current_date_time funkciji), moze biti nesigurno
-#include<iomanip>
+#pragma warning(disable : 4996) // zbog localtime(u current_date_time funkciji), moze biti nesigurno
 #include <format>
+#include <iomanip>
 
 #include <ostream>
 #include "softver-za-prodavnice/config.hpp"
@@ -49,9 +49,10 @@ class Database {
 
 	bool check_item_availability(const std::string& other_barcode, const int& quantity);
 
-	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date, const int& end_date, std::string& path);
+	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date,
+									const int& end_date, std::string& path);
 	int search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode);
-	
+
 	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
 
   private: // za lokalne metode
