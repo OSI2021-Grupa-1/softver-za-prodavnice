@@ -10,7 +10,7 @@ class Config {
 
   public:
 	size_t get_size() const;
-	std::pair<std::string, std::string> get_path(int i) const;
+	std::string get_path(std::string key) const;
 	void load_paths(const std::string& path);
 	void print() {
 		for (auto x : paths) {

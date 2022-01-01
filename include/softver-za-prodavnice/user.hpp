@@ -26,4 +26,6 @@ class User {
 	std::string get_password() const;
 	Position get_position() const;
 	std::size_t get_number_of_logins() const;
+
+	void set_password(const std::string& pw);
 };

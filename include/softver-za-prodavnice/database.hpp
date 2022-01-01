@@ -23,9 +23,15 @@ class Database {
 	std::vector<User> get_user_data() const;
 	std::vector<Item> get_item_data() const;
 
-	void delete_user(const std::vector<User>& users);
-	void delete_item(const std::vector<Item>& items);
+	void delete_users(const std::vector<User>& users);
+	void delete_items(const std::vector<Item>& items);
 
-	void write_users_to_file(const std::string path); 
-	void write_items_to_file(const std::string path);
+	void change_password(const std::string& usr, const std::string& new_pw);
+	bool password_correct(const std::string& usr, const std::string& input) const;
+	bool passwords_equal(const std::string& original, const std::string& confirmation) const;
+
+	size_t find_user(const std::string& usr) const;
+	std::string find_path(const std::string& key) const;
+
+	void write_in_file(const std::string path) {} // Elena radi
 };

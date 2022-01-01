@@ -23,3 +23,5 @@ std::string User::get_password() const { return password; }
 Position User::get_position() const { return position; }
 
 std::size_t User::get_number_of_logins() const { return number_of_logins; }
+
+void User::set_password(const std::string& pw) { password = pw; }

@@ -4,7 +4,13 @@
 
 size_t Config::get_size() const { return paths.size(); }
 
-std::pair<std::string, std::string> Config::get_path(int i) const { return paths[i]; }
+std::string Config::get_path(std::string key) const {
+	for (int i = 0; i < paths.size(); i++)
+		if (paths[i].first == "korisnici") {
+			return paths[i].second;
+		}
+}
+
 
 void Config::load_paths(const std::string& path) {
 	try {
