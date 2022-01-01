@@ -106,3 +106,14 @@ std::vector<Item> Database::filter(std::function<bool(const Item&)> f) {
 	}
 	return new_vector;
 }
+
+bool Database::find_item(const std::string& other_barcode, const int& quantity) {
+
+	int i;
+	for (i = 0; i < item_data.size(); i++) {
+		if (item_data[i].get_barcode == other_barcode) break;
+	}
+	if (i == item_data.size()) return false;
+	if (item_data[i].get_quantity < quantity) return false;
+	return true;
+}

@@ -41,4 +41,7 @@ class Database {
 
 	bool search_items(std::string barcode);
 	std::vector<Item> filter(std::function<bool(const Item&)> f);
+	void write_in_file(const std::string path) {} // Elena radi
+
+	bool find_item(const std::string& other_barcode, const int& quantity);
 };
