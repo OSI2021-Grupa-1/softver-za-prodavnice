@@ -62,3 +62,15 @@ std::string util::generete_receipt_file_name(std::string current_date_time) {
 	file_name = current_date_time + ".txt";
 	return file_name;
 }
+
+std::string util::helper(int width, const std::string& str) {
+	int len = str.length();
+	if (width < len - 2) {
+		return " " + str.substr(0, 45) + "\n" + helper(width, str.substr(46, str.length()));
+	}
+
+	int diff = width - len;
+	int pad1 = diff / 2;
+	int pad2 = diff - pad1;
+	return std::string(pad1, ' ') + str + std::string(pad2, ' ');
+}

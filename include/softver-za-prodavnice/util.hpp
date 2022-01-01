@@ -14,4 +14,5 @@ namespace util {
 	std::vector<std::pair<std::string, std::string>> insert_pairs(std::vector<std::string> file_lines);
 
 	std::string generete_receipt_file_name(std::string current_date_time);
+	std::string helper(int width, const std::string& str);
 	} // namespace util

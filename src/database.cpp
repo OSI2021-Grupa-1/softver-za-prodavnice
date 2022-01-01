@@ -200,9 +200,9 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 	if (file.is_open()) {
 		int width = 48;
 		file << std::setw(width) << std::setfill('=') << "\n";
-		file << std::format("{:^48}\n", "Naziv prodavnice");
-		file << std::format("{:^48}\n", "Adresa");
-		file << std::format("{:^48}\n", "Broj telefona");
+		file << util::helper(width, "Naziv prodavnice") << "\n";
+		file << util::helper(width, "Naziv prodavnice") << "\n";
+		file << util::helper(width, "Naziv prodavnice") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << current_time << '\n';
 		file << std::left << "Blagajnik: " << "ph" << '\n';
@@ -234,7 +234,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 			 << std::setw(13) << "Osnovica" << std::setw(8) << "Iznos" << std::endl;
 		file << std::left << std::setw(15) << "PDV 17%" << std::setw(12) << "17.00" << std::setw(13)
 			 << sum - sum * 0.17 << std::setw(8) << sum * 0.17 << std::endl; // PDV hardkodovan
-		file << std::format("{:^48}\n", "Hvala na posjeti!");
+		file << util::helper(width, "Naziv prodavnice") << "\n";
 		file << std::setw(width) << std::setfill('=') << "" << '\n';
 
 	} else {
