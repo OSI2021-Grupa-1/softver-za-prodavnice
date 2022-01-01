@@ -7,3 +7,4 @@ int main() {
 	paths.load_paths("config.txt");
 	paths.print();
 }
+

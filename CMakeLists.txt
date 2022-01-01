@@ -8,7 +8,7 @@ if(UNIX)
 endif()
 
 if(WIN32)
-  message(STATUS "Is linux")
+  message(STATUS "Is windows")
 endif()
 
 

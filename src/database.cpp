@@ -237,7 +237,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << "UKUPNO:" << std::string(33, ' ') << sum << std::endl;
 		file << std::setw(width) << std::setfill('-') << "" << '\n';
 		file << std::setfill(' ');
-		file << std::left << std::setw(15) << "Vrsta poreza" << std::setw(12) << "Stopa (\%)"
+		file << std::left << std::setw(15) << "Vrsta poreza" << std::setw(12) << "Stopa (\%)" //Ovaj % urzokuje upozorenje
 			 << std::setw(13) << "Osnovica" << std::setw(8) << "Iznos" << std::endl;
 		file << std::left << std::setw(15) << "PDV 17%" << std::setw(12) << "17.00" << std::setw(13)
 			 << sum - sum * 0.17 << std::setw(8) << sum * 0.17 << std::endl; // PDV hardkodovan
