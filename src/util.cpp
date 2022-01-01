@@ -53,3 +53,12 @@ std::string_view util::trim_whitespace(std::string_view str) {
 	}
 	return str.substr(start, finish - start);
 }
+
+std::string util::generete_receipt_file_name(std::string current_date_time) {
+	std::string file_name;
+	std::replace(current_date_time.begin(), current_date_time.end(), ':', '-');
+	std::replace(current_date_time.begin(), current_date_time.end(), '.', '-');
+
+	file_name = current_date_time + ".txt";
+	return file_name;
+}
