@@ -6,8 +6,8 @@ project (softver-za-prodavnice)
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "")
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  message(STATUS "Exporting compile_commands.json")
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+message(STATUS "Exporting compile_commands.json")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
 # git
@@ -23,8 +23,12 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
   endif()
 endif()
 
-#add library folder
+#Set flag on linnux
+if(UNIX)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif()
 
+#add library folder
 set(FTXUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/ftxui)
 add_subdirectory(${FTXUI_DIR})
 
@@ -34,9 +38,6 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.?pp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${FTXUI_DIR}/include src include)
 
-if(UNIX)
-  target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
-endif()
 
 target_link_libraries(${PROJECT_NAME} 
                         PRIVATE ftxui::screen
