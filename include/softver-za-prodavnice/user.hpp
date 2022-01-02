@@ -31,4 +31,6 @@ class User {
 
 	void set_password(const std::string& pw);
 	friend std::ostream& operator<<(std::ostream& os, const User& user);
+
+	User& create_account(std::string username, std::string password, std::string position);
 };

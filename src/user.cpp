@@ -38,3 +38,8 @@ std::ostream& operator<<(std::ostream& os, const User& user) {
 	   << user.number_of_logins;
 	return os;
 }
+
+User& User::create_account(std::string username, std::string password, std::string position) {
+	User ret(username, password, position, 0);
+	return ret;
+}
