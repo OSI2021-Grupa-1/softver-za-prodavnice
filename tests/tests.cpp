@@ -1,6 +1,13 @@
 #include <cassert>
+#include <fstream>
+#include <iostream>
 
 int main() {
-	assert(1 == 2);
-	return 0;
+	if (auto file = std::ifstream("config.txt")) {
+		std::cout << "Opened\n";
+		return 0;
+	} else {
+		std::cout << "Filed\n";
+		return 1;
+	}
 }

@@ -4,11 +4,15 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <filesystem>
 #include "softver-za-prodavnice/util.hpp"
+
 class Config {
 	std::vector<std::pair<std::string, std::string>> paths{};
+	std::filesystem::path prefix{};
 
   public:
+	Config(std::filesystem::path prefix) : prefix(std::move(prefix)) {}
 	size_t get_size() const;
 	std::string get_path(std::string key) const;
 	void load_paths(const std::string& path);

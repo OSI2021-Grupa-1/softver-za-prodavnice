@@ -1,33 +1,33 @@
 #include "softver-za-prodavnice/database.hpp"
 
-Database::Database(std::vector<User> user_data, std::vector<Item> item_data)
-	: user_data(user_data), item_data(item_data) {}
+Database::Database(std::vector<User> user_data, std::vector<Item> item_data,
+				   std::filesystem::path data_path)
+	: user_data(std::move(user_data)), item_data(std::move(item_data)),
+	  paths(std::move(data_path)) {}
 
-Database::Database(const Database& other)
-	: user_data(other.user_data), item_data(other.item_data) {}
-
-void Database::set_user_data(std::vector<User> user_data) { this->user_data = user_data; }
-void Database::set_item_data(std::vector<Item> item_data) { this->item_data = item_data; }
+void Database::set_user_data(std::vector<User> user_data) {
+	this->user_data = std::move(user_data);
+}
+void Database::set_item_data(std::vector<Item> item_data) {
+	this->item_data = std::move(item_data);
+}
 
 std::vector<User> Database::get_user_data() const { return user_data; }
 std::vector<Item> Database::get_item_data() const { return item_data; }
 
 void Database::delete_users(const std::vector<User>& users) {
-	for (int i = 0; i < users.size(); i++)
+	for (std::size_t i = 0; i < users.size(); i++) {
 		user_data.erase(std::remove(user_data.begin(), user_data.end(), users[i]), user_data.end());
-
-	std::string path = paths.get_path("korisnici");
-
-	write_users_to_file(path);
+	}
+	write_users_to_file(paths.get_path("korisnici"));
 }
 
 void Database::delete_items(const std::vector<Item>& items) {
-	for (int i = 0; i < items.size(); i++)
+	for (std::size_t i = 0; i < items.size(); i++) {
 		item_data.erase(std::remove(item_data.begin(), item_data.end(), items[i]), item_data.end());
+	}
 
-	std::string path = paths.get_path("artikli_na_stanju");
-
-	write_items_to_file(path);
+	write_items_to_file(paths.get_path("artikli_na_stanju"));
 }
 
 void Database::change_password(const std::string& usr, const std::string& new_pw) {
@@ -37,17 +37,14 @@ void Database::change_password(const std::string& usr, const std::string& new_pw
 	size_t index = find_user(usr);
 	user_data[index].set_password(new_pw);
 
-	std::string path = paths.get_path("korisnici");
-
-	write_users_to_file(path);
+	write_users_to_file(paths.get_path("korisnici"));
 }
 
 bool Database::is_password_correct(const std::string& usr, const std::string& pw_input) const {
 	size_t index = find_user(usr);
 
 	if (pw_input == user_data[index].get_password()) return true;
-	else
-		return false;
+	return false;
 }
 
 bool Database::are_passwords_equal(const std::string& original,
@@ -237,7 +234,8 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << "UKUPNO:" << std::string(33, ' ') << sum << std::endl;
 		file << std::setw(width) << std::setfill('-') << "" << '\n';
 		file << std::setfill(' ');
-		file << std::left << std::setw(15) << "Vrsta poreza" << std::setw(12) << "Stopa (\%)" //Ovaj % urzokuje upozorenje
+		file << std::left << std::setw(15) << "Vrsta poreza" << std::setw(12)
+			 << "Stopa (\%)" // Ovaj % urzokuje upozorenje
 			 << std::setw(13) << "Osnovica" << std::setw(8) << "Iznos" << std::endl;
 		file << std::left << std::setw(15) << "PDV 17%" << std::setw(12) << "17.00" << std::setw(13)
 			 << sum - sum * 0.17 << std::setw(8) << sum * 0.17 << std::endl; // PDV hardkodovan

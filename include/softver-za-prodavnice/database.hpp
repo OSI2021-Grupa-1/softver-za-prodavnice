@@ -12,12 +12,11 @@
 class Database {
 	std::vector<User> user_data;
 	std::vector<Item> item_data;
-	Config paths{};
+	Config paths;
 
   public:
-	Database() = default;
-	Database(std::vector<User> user_data, std::vector<Item> item_data);
-	Database(const Database& other);
+	Database(std::vector<User> user_data, std::vector<Item> item_data,
+			 std::filesystem::path data_path);
 
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);

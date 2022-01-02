@@ -1,15 +1,7 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.19)
 
 project (softver-za-prodavnice)
 
-if(UNIX)
-  message(STATUS "Is linux")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-endif()
-
-if(WIN32)
-  message(STATUS "Is windows")
-endif()
 
 
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "")
@@ -41,6 +33,11 @@ add_subdirectory(${FTXUI_DIR})
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.?pp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${FTXUI_DIR}/include src include)
+
+if(UNIX)
+  target_link_libraries(${PROJECT_NAME} PRIVATE pthread)
+endif()
+
 target_link_libraries(${PROJECT_NAME} 
                         PRIVATE ftxui::screen
                         PRIVATE ftxui::dom
