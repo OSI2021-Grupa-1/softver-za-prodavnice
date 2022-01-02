@@ -22,6 +22,7 @@ class User {
 	User(const User& other);
 
 	bool operator==(const User& other) const; // potrebno za std::remove
+	User& operator=(const User& other);
 
 	std::string get_username() const;
 	std::string get_password() const;

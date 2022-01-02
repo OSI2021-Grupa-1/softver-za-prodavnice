@@ -15,6 +15,15 @@ bool User::operator==(const User& other) const {
 	return false;
 }
 
+User& User::operator=(const User& other) {
+	if (this == &other) return *this;
+	username = other.username;
+	password = other.password;
+	position = other.position;
+	number_of_logins = other.number_of_logins;
+	return *this;
+}
+
 std::string User::get_username() const { return username; }
 
 std::string User::get_password() const { return password; }

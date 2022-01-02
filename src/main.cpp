@@ -1,6 +1,7 @@
 #include <memory>
 #include <string>
 #include "softver-za-prodavnice/config.hpp"
+#include "softver-za-prodavnice/user.hpp"
 
 int main() {
 	Config paths;
