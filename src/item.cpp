@@ -33,6 +33,6 @@ double Item::get_price() const { return price; }
 double Item::get_quantity() const { return quantity; }
 
 std::ostream& operator<<(std::ostream& os, const Item& item) {
-	os << item.barcode << "φ" << item.name << "φ" << item.price << "φ" << item.quantity;
+	os << item.barcode << "#" << item.name << "#" << item.price << "#" << item.quantity;
 	return os;
 }

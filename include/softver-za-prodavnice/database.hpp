@@ -53,6 +53,8 @@ class Database {
 
 	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
 
+	void write_sold_items_to_file(const std::vector<Item>& items, const std::string& date);
+
   private: // za lokalne metode
 	const std::string current_date_time();
 };

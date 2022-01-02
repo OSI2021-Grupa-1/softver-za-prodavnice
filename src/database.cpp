@@ -146,10 +146,10 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 	int position, date;
 	if (auto file = std::ifstream(path)) {
 		do {
-			std::getline(file, barcode, ',');
-			std::getline(file, name, ',');
-			std::getline(file, price, ',');
-			std::getline(file, quantity, ',');
+			std::getline(file, barcode, '#');
+			std::getline(file, name, '#');
+			std::getline(file, price, '#');
+			std::getline(file, quantity, '#');
 			std::getline(file, day, '/');
 			std::getline(file, month, '/');
 			std::getline(file, year);
@@ -241,6 +241,43 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		throw std::exception("File couldn't be opened\n");
 	}
 }
+
+void Database::write_sold_items_to_file(const std::vector<Item>& items, const std::string& date) {
+	std::fstream tmp_file;
+	std::fstream transaction_file;
+
+	std::string putanja_do_pomocnog;	   // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
+	std::string putanja_do_pravog;         // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
+
+	tmp_file.open(putanja_do_pomocnog, std::ios::out);
+	if (!tmp_file.is_open()) throw std::exception();
+
+	transaction_file.open(putanja_do_pravog, std::ios::in);
+	if (!transaction_file.is_open()) throw std::exception();
+
+	for (size_t i = 0; i < items.size(); i++) {
+		tmp_file << items[i] << "#" << date << std::endl;
+	}
+	tmp_file << transaction_file.rdbuf();
+	
+	tmp_file.close();
+	transaction_file.close();
+
+	tmp_file.open(putanja_do_pomocnog, std::ios::in);
+	if (!tmp_file.is_open()) throw std::exception();
+
+	transaction_file.open(putanja_do_pravog, std::ios::out);
+	if (!transaction_file.is_open()) throw std::exception();
+
+	transaction_file << tmp_file.rdbuf();
+
+	tmp_file.close();
+	transaction_file.close();
+
+	tmp_file.open(putanja_do_pomocnog, std::ios::out);  // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
+	if (!tmp_file.is_open()) throw std::exception();	// cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
+	tmp_file.close();									// cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
+}; 
 
 const std::string Database::current_date_time() {
 	time_t now = time(0);

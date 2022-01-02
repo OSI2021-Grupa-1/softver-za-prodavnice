@@ -34,7 +34,7 @@ std::size_t User::get_number_of_logins() const { return number_of_logins; }
 
 void User::set_password(const std::string& pw) { password = pw; }
 std::ostream& operator<<(std::ostream& os, const User& user) {
-	os << user.username << "φ" << user.password << "φ" << user.position << "φ"
+	os << user.username << "#" << user.password << "#" << user.position << "#"
 	   << user.number_of_logins;
 	return os;
 }
