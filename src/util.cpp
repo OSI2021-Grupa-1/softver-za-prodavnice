@@ -74,3 +74,15 @@ std::string util::helper(int width, const std::string& str) {
 	int pad2 = diff - pad1;
 	return std::string(pad1, ' ') + str + std::string(pad2, ' ');
 }
+
+std::filesystem::path util::get_data_path(std::filesystem::path start) {
+	static constexpr std::string_view target = "data";
+	while (!start.empty() && (start.parent_path() != start.root_directory())) {
+		auto ret = start / target;
+		if (std::filesystem::is_directory(ret)) {
+			return ret;
+		}
+		start = start.parent_path();
+	}
+	return {};
+}

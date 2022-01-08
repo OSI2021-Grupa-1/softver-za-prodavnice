@@ -1,10 +1,10 @@
 #pragma once
 #pragma warning(disable : 4996) // zbog localtime(u current_date_time funkciji), moze biti nesigurno
 #include <functional>
-#include <vector>
-#include <time.h>
 #include <iomanip>
 #include <ostream>
+#include <vector>
+#include <time.h>
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
@@ -12,12 +12,11 @@
 class Database {
 	std::vector<User> user_data;
 	std::vector<Item> item_data;
-	Config paths{};
+	Config paths;
 
   public:
-	Database() = default;
-	Database(std::vector<User> user_data, std::vector<Item> item_data);
-	Database(const Database& other);
+	Database(std::vector<User> user_data, std::vector<Item> item_data,
+			 std::filesystem::path data_path);
 
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);
