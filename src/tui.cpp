@@ -37,16 +37,16 @@ void tui::login(const Database& db) {
 	auto renderer = ftxui::Renderer(component, [&] {
 		// korisnicko ime ce postati zeleno, ako je validno
 		//bilo bi dobro i ostale boje ovako definisati, da ne budu samo magicni brojevi
-		ftxui::Color input_color{86, 108, 134};
+		ftxui::Color input_color = light_gray;
 		if (db.find_user(name) >= 0) {
 			correct_name = name;
-			input_color = {167, 240, 112};
+			input_color = {bright_green};
 			// lozinku je dovoljno provjeravati samo u slucaju da je korisnicko ime tacno
 			correct_password = password;
 		}
 		return ftxui::vbox(
 				   {center(bold(ftxui::text(welcome_message)) | vcenter | size(HEIGHT, EQUAL, 5) |
-						   ftxui::color(ftxui::Color(244, 244, 244))) |
+						   ftxui::color(white)) |
 						borderHeavy | size(WIDTH, EQUAL, 150),
 
 					ftxui::vbox({center(ftxui::hbox(
@@ -55,13 +55,13 @@ void tui::login(const Database& db) {
 						ftxui::borderRounded,
 					center(hbox(ftxui::text(""), password_input->Render() |
 													 size(WIDTH, LESS_THAN, 80) |
-													 ftxui::color(ftxui::Color(86, 108, 134)))) |
+													 ftxui::color(light_gray))) |
 						ftxui::borderRounded | vcenter,
 					center(hbox(center(log_in_button->Render()) | size(WIDTH, EQUAL, 12) |
-									ftxui::color(ftxui::Color(167, 240, 112)),
+									ftxui::color(bright_green),
 								center(center(exit_button->Render())) | size(WIDTH, EQUAL, 12) |
-									ftxui::color(ftxui::Color(177, 62, 83))))}) |
-			   hcenter | color(ftxui::Color(148, 176, 194));
+									ftxui::color(red)))}) |
+			   hcenter | color(light_gray);
 	});
 
 	screen.Loop(renderer);
