@@ -16,7 +16,10 @@ class Database {
 
   public:
 	Database(std::vector<User> user_data, std::vector<Item> item_data,
-			 std::filesystem::path data_path);
+			Config paths);
+	//treba biti dovoljno da se samo proslijedi konfiguracioni fajl i da baza podataka sama cita sve potrebne informacije
+	Database(Config& paths);
+
 
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);
@@ -31,7 +34,7 @@ class Database {
 	bool is_password_correct(const std::string& usr, const std::string& input) const;
 	bool are_passwords_equal(const std::string& original, const std::string& confirmation) const;
 
-	size_t find_user(const std::string& usr) const;
+	int find_user(const std::string& usr) const;
 
 	void write_users_to_file(const std::string path);
 	void write_items_to_file(const std::string path);

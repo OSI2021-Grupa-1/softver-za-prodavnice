@@ -20,5 +20,5 @@
 #include "ftxui/util/ref.hpp"
 
 namespace tui {
-void login();
+void login(const Database& db);
 }; // namespace tui

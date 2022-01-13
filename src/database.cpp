@@ -1,9 +1,15 @@
 #include "softver-za-prodavnice/database.hpp"
 
 Database::Database(std::vector<User> user_data, std::vector<Item> item_data,
-				   std::filesystem::path data_path)
+				  Config paths)
 	: user_data(std::move(user_data)), item_data(std::move(item_data)),
-	  paths(std::move(data_path)) {}
+	  paths(std::move(paths)) {}
+
+
+// Ovaj konsturkor je potrebno definisati
+Database::Database(Config& paths) : paths(paths) {
+	
+	}
 
 void Database::set_user_data(std::vector<User> user_data) {
 	this->user_data = std::move(user_data);
@@ -54,11 +60,13 @@ bool Database::are_passwords_equal(const std::string& original,
 		return false;
 }
 
-size_t Database::find_user(const std::string& username) const {
-	for (size_t i = 0; i < paths.get_size(); i++) {
+//funkcija vraca indeks korisnika ako se korisnik nalazi u bazi podataka, vraca -1 ako se ne nalazi
+int Database::find_user(const std::string& username) const {
+	for (size_t i = 0; i < user_data.size(); i++) {
 		if (username == user_data[i].get_username()) return i;
 	}
-	throw std::invalid_argument("User couldn't be found");
+	return -1;
+	//throw std::invalid_argument("User couldn't be found");
 	// ne bi ga trebao nikad baciti jer se username
 	// prosljedjuje iz main-a i vec je provjeren
 }
