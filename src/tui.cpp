@@ -26,8 +26,9 @@ void tui::login(Database& db) {
 				User current_user = db.get_user_data()[db.find_user(correct_name)];
 				db.set_current_user(current_user);
 				// welcome_message = db.get_user_data()[db.find_user(correct_name)].get_position();
-
-				db.get_user_data()[db.find_user(correct_name)].increase_num_logins();
+				std::vector<User> temp_usr_data = db.get_user_data();
+				temp_usr_data[db.find_user(correct_name)].increase_num_logins();
+				db.set_user_data(temp_usr_data);
 				db.write_users_to_file(db.get_pahts().get_path(
 					"korisnici")); // ne radi, ali potrebno sacekati da se implementuje ispravno
 								   // citanje podataka iz fajlova
@@ -93,6 +94,7 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 		if (db.is_password_valid(entered_password)) {
 			if (entered_password == entered_confimation) {
 				db.change_password(db.get_current_user().get_username(), entered_password);
+				db.write_users_to_file(db.get_pahts().get_path("korisnici"));
 				caller(db);
 			}
 		}
@@ -110,9 +112,9 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 		ftxui::Color input_color = light_gray;
 
 		entered_password = new_password;
-		confirmed_password = confirmed_password;
+		entered_confimation = confirmed_password;
 		
-		if (db.is_password_valid(entered_password) && entered_password == confirmed_password) {
+		if (db.is_password_valid(entered_password) && entered_password == entered_confimation) {
 			input_color = bright_green;
 			}
 
