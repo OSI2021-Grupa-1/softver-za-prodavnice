@@ -13,14 +13,17 @@ class Database {
 	std::vector<User> user_data;
 	std::vector<Item> item_data;
 	Config paths;
+	User current_user{};
 
   public:
-	Database(std::vector<User> user_data, std::vector<Item> item_data,
-			Config paths);
-	//treba biti dovoljno da se samo proslijedi konfiguracioni fajl i da baza podataka sama cita sve potrebne informacije
+	Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths);
+	// treba biti dovoljno da se samo proslijedi konfiguracioni fajl i da baza podataka sama cita
+	// sve potrebne informacije
 	Database(Config& paths);
 
-
+	void set_current_user(User user) { current_user = std::move(user); }
+	User get_current_user() const { return current_user; }
+	Config get_pahts() const { return paths; }
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);
 
@@ -33,6 +36,7 @@ class Database {
 	void change_password(const std::string& usr, const std::string& new_pw);
 	bool is_password_correct(const std::string& usr, const std::string& input) const;
 	bool are_passwords_equal(const std::string& original, const std::string& confirmation) const;
+	bool is_password_valid(std::string& pw) const { return pw.size() >= 8; }
 
 	int find_user(const std::string& usr) const;
 
@@ -56,6 +60,7 @@ class Database {
 	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
 
 	void write_sold_items_to_file(const std::vector<Item>& items, const std::string& date);
+
 
   private: // za lokalne metode
 	const std::string current_date_time();

@@ -28,6 +28,7 @@ class User {
 	std::string get_password() const;
 	std::string get_position() const;
 	std::size_t get_number_of_logins() const;
+	void increase_num_logins() { ++number_of_logins; }
 
 	void set_password(const std::string& pw);
 	friend std::ostream& operator<<(std::ostream& os, const User& user);

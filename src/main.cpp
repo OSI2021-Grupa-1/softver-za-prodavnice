@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
 	std::vector<Item> item_data{};
 	Config paths(util::get_data_path(argv[0]));
 	paths.load_paths("config.txt");
-	paths.print();
+//	paths.print();
 	Database db{user_data, item_data, paths};
 	tui::login(db);
 }
