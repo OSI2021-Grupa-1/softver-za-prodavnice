@@ -8,6 +8,7 @@
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
+#include "softver-za-prodavnice/util.hpp"
 
 class Database {
 	std::vector<User> user_data;

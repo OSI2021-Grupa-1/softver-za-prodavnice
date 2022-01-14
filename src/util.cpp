@@ -95,3 +95,59 @@ std::string util::encrypt_decrypt(std::string pw) {
 
 	return to_process;
 }
+
+std::vector<User> util::read_users_from_file(const std::string path) {
+	std::vector<User> ret{};
+	std::string temp_line;
+	if (auto file = std::ifstream(path)) {
+		while (std::getline(file, temp_line)) {
+			User user = util::parse_user(temp_line);
+			ret.push_back(user);
+		}
+		return ret;
+	} else
+		throw std::exception("File couldn't be opened\n");
+}
+
+User util::parse_user(const std::string& line) {
+	std::vector<std::string> data;
+	auto divider = line.find('#');
+	data.push_back(line.substr(0, divider));
+	std::string temp_line = line.substr(divider + 1);
+	divider = temp_line.find('#');
+	data.push_back(temp_line.substr(0, divider));
+	std::string temp_line2 = temp_line.substr(divider + 1);
+	divider = temp_line2.find('#');
+	data.push_back(temp_line2.substr(0, divider));
+	data.push_back(temp_line2.substr(divider + 1));
+	User ret(data[0], data[1], data[2], std::stoi(data[3]));
+	return ret;
+}
+
+std::vector<Item> util::read_items_from_file(const std::string path) {
+	std::vector<Item> ret{};
+	std::string temp_line;
+	if (auto file = std::ifstream(path)) {
+		while (std::getline(file, temp_line)) {
+			Item item = util::parse_item(temp_line);
+			ret.push_back(item);
+		}
+		return ret;
+	} else
+		throw std::exception("File couldn't be opened\n");
+}
+
+Item util::parse_item(const std::string& line) {
+	std::vector<std::string> data;
+	auto divider = line.find('#');
+	data.push_back(line.substr(0, divider));
+	std::string temp_line = line.substr(divider + 1);
+	divider = temp_line.find('#');
+	data.push_back(temp_line.substr(0, divider));
+	std::string temp_line2 = temp_line.substr(divider + 1);
+	divider = temp_line2.find('#');
+	data.push_back(temp_line2.substr(0, divider));
+	data.push_back(temp_line2.substr(divider + 1));
+	Item ret(data[0], data[1], std::stod(data[2]), std::stod(data[3]));
+	return ret;
+}

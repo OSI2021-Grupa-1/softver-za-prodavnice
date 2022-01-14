@@ -6,10 +6,12 @@ Database::Database(std::vector<User> user_data, std::vector<Item> item_data,
 	  paths(std::move(paths)) {}
 
 
-// Ovaj konsturkor je potrebno definisati
 Database::Database(Config& paths) : paths(paths) {
-	
-	}
+	std::string users_path = paths.get_path("korisnici");
+	std::string items_path = paths.get_path("artikli_na_stanju");
+	user_data = util::read_users_from_file(users_path);
+	item_data = util::read_items_from_file(items_path);
+}
 
 void Database::set_user_data(std::vector<User> user_data) {
 	this->user_data = std::move(user_data);
