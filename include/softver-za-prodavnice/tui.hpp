@@ -5,6 +5,8 @@
 #include "item.hpp"
 #include "user.hpp"
 #include "util.hpp"
+#include <iomanip>
+#include <sstream>
 
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
@@ -18,6 +20,7 @@
 #include "ftxui/screen/screen.hpp"
 #include "ftxui/screen/terminal.hpp"
 #include "ftxui/util/ref.hpp"
+#include <ftxui/dom/table.hpp> 
 
 namespace tui {
 inline ftxui::Color purple = {93, 39, 93};

@@ -218,24 +218,172 @@ void tui::employee_interface(Database& db) {
 }
 
 void tui::selling_items_interface(Database& db) {
-	struct CheckboxState {
-		bool checked;
+
+	std::vector<std::string> entries;
+	int selected = 0;
+	auto list = db.items_table();
+	auto items_copy = db.get_item_data();
+
+
+	for (int i = 0; i < db.get_item_data().size(); ++i) {
+		std::stringstream str;
+		str << "  " << std::left << std::setw(8) << list[i][0] << std::setw(21) << list[i][1]
+			<< std::setw(6) << list[i][2];
+		std::string inp = str.str();
+		entries.push_back(inp);
+	}
+	auto radiobox = Menu(&entries, &selected);
+
+	std::string quantity;
+	ftxui::Component quantity_input = ftxui::Input(&quantity, "     ");
+
+	double d_quantity = 0;
+	std::vector<std::pair<Item, double>> sold_items;
+
+	int depth = 0; //1 za nema na stanju, 2 za neispravan unos kolicine
+
+	auto add_item_button = Button("DODAJ ARTIKAL NA RACUN", [&] {
+		bool item_available = false;
+		try {
+			d_quantity = std::stod(quantity);
+			item_available = db.check_item_availability(list[selected][0], d_quantity);
+		} catch (const std::length_error& exc){
+			depth = 1;
+		} catch (const std::invalid_argument& exc) {
+			depth = 2;
+		}
+		if (item_available) {
+			db.update_quantity_by_id(items_copy, list[selected][0], -d_quantity);
+			Item new_it = db.find_item_by_barcode(list[selected][0]);
+			int i;
+			for (i = 0; i < sold_items.size(); i++) {
+				auto item = sold_items[i].first;
+				if (item == new_it) break;
+			}
+			if (i == sold_items.size()) sold_items.push_back(std::make_pair(new_it, d_quantity));
+			else
+				sold_items[i].first.set_quantity(sold_items[i].first.get_quantity() + d_quantity);
+		}
+	});
+
+	auto generate_receipt_button = Button("GENERISI RACUN", [&] {
+		if (sold_items.size() == 0) {
+			depth = 3;
+		} else {
+			db.set_item_data(items_copy);
+			std::string current_time = db.current_date_time();
+			db.generate_receipt(sold_items, current_time);
+
+			std::vector<Item> for_another_func;
+			for (auto item : sold_items) {
+				item.first.set_quantity(item.second);
+				for_another_func.push_back(item.first);
+			}
+			std::string date = current_time.substr(0, 10);
+			std::replace(date.begin(), date.end(), '.', '/');
+			db.write_sold_items_to_file(for_another_func, date);
+			tui::employee_interface(db);
+		}
+	});
+	auto cancel_button = ftxui::Button("ODUSTANI", [&] { employee_interface(db); });
+
+
+
+	auto depth_0_container = Container::Vertical({radiobox, quantity_input, add_item_button, generate_receipt_button,
+							 cancel_button});
+
+	auto depth_0_renderer = Renderer(depth_0_container, [&] {
+		//std::string inp;
+		//for (int i = 0; i < sold_items.size(); i++) {
+		//	auto item = sold_items[i];
+		//	std::stringstream str;
+		//	str << " " << std::left << std::setw(8) << item.first.get_barcode() << std::setw(21)
+		//		<< item.first.get_name() << std::setw(9) << item.first.get_price() << std::setw(6)
+		//		<< item.second << '\n';
+		//	inp += str.str();
+		//}
+		return ftxui::vbox({
+			hbox(center(text(db.get_current_user().get_username()))), separator(),
+				// 0123456789012345678901234567890123456
+				hbox(center(text("     SIFRA   ARTIKAL              CIJENA"))),
+				radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) |
+					border,
+				center(hbox(ftxui::text(" Kolicina artikla:  ") | size(WIDTH, LESS_THAN, 20),
+							quantity_input->Render() | ftxui::color(light_gray))) |
+					ftxui::borderRounded | vcenter | size(WIDTH, EQUAL, 50),
+				center(hbox(center(add_item_button->Render()))),
+				center(hbox(center(generate_receipt_button->Render()))),
+				center(hbox(center(cancel_button->Render()))),
+
+				}) | center | borderHeavy;
+	});
+
+
+	auto on_agree = [&]() {
+		depth = 0;
 	};
 
-	std::vector<std::pair<Item, double>> sold_items;
-	std::vector<CheckboxState> states(db.get_item_data().size());
-	auto container = Container::Vertical({});
-	auto screen = ScreenInteractive::TerminalOutput();
+	auto depth_1_container = Container::Horizontal({ Button("U REDU", [&]{on_agree();})});
+	auto depth_2_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+	auto depth_3_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 
-	for (int i = 0; db.get_item_data().size(); ++i) {
-		states[i].checked = false;
-		container->Add(Checkbox(db.get_item_data()[i].get_name(), &states[i].checked));
-	}
-
-	auto renderer = Renderer(container, [&] {
-		return container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 100) |
-			   size(WIDTH, EQUAL, 150) | center | border;
+	auto depth_1_renderer = Renderer(depth_1_container, [&] {
+		return vbox({
+				   text("Nedovoljno artikala na stanju"),
+				   separator(),
+				   center(hbox(depth_1_container->Render())),
+			   }) |
+			   border;
 	});
+	auto depth_2_renderer = Renderer(depth_2_container, [&] {
+		return vbox({
+				   text("Nepravilan unos kolicine"),
+				   separator(),
+				   center(hbox(depth_2_container->Render())),
+			   }) |
+			   border;
+	});
+	auto depth_3_renderer = Renderer(depth_3_container, [&] {
+		return vbox({
+				   text("Za generisanje racuna mora se dodati bar jedan artikal"),
+				   separator(),
+				   center(hbox(depth_3_container->Render())),
+			   }) |
+			   border;
+	});
+
+	  auto main_container = Container::Tab(
+		{
+			depth_0_renderer,
+			depth_1_renderer,
+			depth_2_renderer, 
+			depth_3_renderer
+		},
+		&depth);
+	auto main_renderer = Renderer(main_container, [&] {
+		Element document = depth_0_renderer->Render();
+
+		if (depth == 1) {
+			document = dbox({
+				document,
+				depth_1_renderer->Render() | clear_under | center,
+			});
+		} else if (depth == 2) {
+			document = dbox({
+				document,
+				depth_2_renderer->Render() | clear_under | center,
+			});
+		} else if (depth == 3) {
+			document = dbox({
+				document,
+				depth_3_renderer->Render() | clear_under | center,
+			});
+		}
+		return document;
+	});
+
+	auto screen = ftxui::ScreenInteractive::TerminalOutput();
+	screen.Loop(main_renderer);
 }
 
 void tui::employee_overview(Database& db) { std::vector<User> selected_users{};

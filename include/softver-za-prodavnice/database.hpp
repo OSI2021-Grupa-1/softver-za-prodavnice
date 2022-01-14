@@ -5,6 +5,9 @@
 #include <ostream>
 #include <vector>
 #include <time.h>
+#include <iomanip>
+#include <sstream>
+#include <algorithm>
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
@@ -51,17 +54,23 @@ class Database {
 	bool lesser_quantity(const Item& item, double quantity);
 	std::vector<Item> filter_name(std::string substr);
 
-	bool check_item_availability(const std::string& other_barcode, const int& quantity);
+	void update_items(std::vector<std::pair<Item, double>> items);
+
+	bool check_item_availability(const std::string& other_barcode, const double& quantity);
 
 	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date,
 									const int& end_date, std::string& path);
 	int search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode);
 
-	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
+	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, const std::string& date);
 
 	void write_sold_items_to_file(const std::vector<Item>& items, const std::string& date);
 
+	Item find_item_by_barcode(const std::string& id) const;
+	std::vector<std::vector<std::string>> items_table();
+	void update_quantity_by_id(std::vector<Item>& copy, std::string id, double quantity);
+
+	const std::string current_date_time();
 
   private: // za lokalne metode
-	const std::string current_date_time();
 };
