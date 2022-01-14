@@ -5,6 +5,7 @@
 #include "item.hpp"
 #include "user.hpp"
 #include "util.hpp"
+#include <memory>
 
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"

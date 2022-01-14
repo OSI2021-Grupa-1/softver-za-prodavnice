@@ -238,10 +238,53 @@ void tui::selling_items_interface(Database& db) {
 	});
 }
 
-void tui::employee_overview(Database& db) { std::vector<User> selected_users{};
+void tui::employee_overview(Database& db) {
+	std::vector<User> selected_users{};
+	std::vector<User> user_data = db.get_user_data();
+	struct CheckboxState {
+		bool checked;
+	};
 
+	auto create_button = ftxui::Button("NOVI NALOG", [&] { employee_overview(db); });
+	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] { db.delete_users(selected_users); });
+	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
+	std::size_t number_of_workers = db.get_user_data().size();
+	std::vector<CheckboxState> states(number_of_workers);
+	auto container = Container::Vertical({});
+	for (int i = 0; i < number_of_workers; ++i) {
+		states[i].checked = false;
+		container->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 	}
+
+	auto renderer = Renderer(container, [&] {
+		for (size_t i = 0; i < number_of_workers; ++i) {
+			if (states[i].checked) {
+				selected_users.push_back(user_data[i]);
+			} else {
+				auto it = std::find(selected_users.begin(), selected_users.end(), user_data[i]);
+				if (it != selected_users.end()) {
+					selected_users.erase(it);
+				}
+			}
+		}
+		return vbox(
+			{center(bold(text("SPISAK RADNIKA"))), separator(),
+			 container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
+			 vbox({
+					   center(create_button->Render()) | size(WIDTH, EQUAL, 100) |
+						   ftxui::color(blue),
+					   center(delete_button->Render()) | size(WIDTH, EQUAL, 100) |
+						   ftxui::color(blue),
+					   center(back_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(red)
+
+				   }) |
+				   border});
+	});
+
+	auto screen = ScreenInteractive::TerminalOutput();
+	screen.Loop(renderer);
+}
 void tui::items_overview(Database& db) {}
 void tui::create_backup(Database& db) {}
 void tui::report_interface(Database& db) {}
