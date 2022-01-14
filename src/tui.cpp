@@ -241,6 +241,7 @@ void tui::selling_items_interface(Database& db) {
 void tui::employee_overview(Database& db) {
 	std::vector<User> selected_users{};
 	std::vector<User> user_data = db.get_user_data();
+	std::size_t number_of_workers = db.get_user_data().size();
 	struct CheckboxState {
 		bool checked;
 	};
@@ -249,15 +250,18 @@ void tui::employee_overview(Database& db) {
 	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] { db.delete_users(selected_users); });
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
-	std::size_t number_of_workers = db.get_user_data().size();
 	std::vector<CheckboxState> states(number_of_workers);
-	auto container = Container::Vertical({});
+	auto items = Container::Vertical({});
 	for (int i = 0; i < number_of_workers; ++i) {
 		states[i].checked = false;
-		container->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
+		items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 	}
 
-	auto renderer = Renderer(container, [&] {
+	auto components = Container::Vertical({create_button, delete_button, back_button, items});
+
+	auto renderer = Renderer(components, [&] {
+		user_data = db.get_user_data();
+		number_of_workers = db.get_user_data().size();
 		for (size_t i = 0; i < number_of_workers; ++i) {
 			if (states[i].checked) {
 				selected_users.push_back(user_data[i]);
@@ -268,18 +272,20 @@ void tui::employee_overview(Database& db) {
 				}
 			}
 		}
+
+		items->DetachAllChildren();
+		for (int i = 0; i < number_of_workers; ++i) {
+			// states[i].checked = false;
+			items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
+		}
 		return vbox(
 			{center(bold(text("SPISAK RADNIKA"))), separator(),
-			 container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
-			 vbox({
-					   center(create_button->Render()) | size(WIDTH, EQUAL, 100) |
-						   ftxui::color(blue),
-					   center(delete_button->Render()) | size(WIDTH, EQUAL, 100) |
-						   ftxui::color(blue),
-					   center(back_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(red)
+			 items->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
+			 vbox({center(create_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+				   center(delete_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+				   center(back_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(red)
 
-				   }) |
-				   border});
+			 }) | border});
 	});
 
 	auto screen = ScreenInteractive::TerminalOutput();
