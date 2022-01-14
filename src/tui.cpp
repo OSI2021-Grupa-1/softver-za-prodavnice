@@ -33,11 +33,16 @@ void tui::login_interface(Database& db) {
 					"korisnici")); // ne radi, ali potrebno sacekati da se implementuje ispravno
 								   // citanje podataka iz fajlova
 
-				if (current_user.get_position() == "sef") {
-					supervisor_interface(db);
-				}
+				if (current_user.get_number_of_logins() <= 30) {
+					if (current_user.get_position() == "sef") {
+						supervisor_interface(db);
+					} else {
+						employee_interface(db);
+					}
+				} else {
 
-				change_password(db, true, login_interface);
+					change_password(db, true, login_interface);
+				}
 			}
 		}
 	});
@@ -178,11 +183,65 @@ void tui::supervisor_interface(Database& db) {
 								   borderRounded | size(WIDTH, EQUAL, 100) | center)}) |
 			   hcenter | color(light_gray);
 	});
+	screen.Loop(renderer);
+}
+
+void tui::employee_interface(Database& db) {
+	auto log_out_button = Button("ODJAVA", [&db] { tui::login_interface(db); });
+	auto sell_items_button = Button("PRODAJA ARTIKALA", [&db] {
+		selling_items_interface(db);
+	}); // funkcija za prodaju izaziva mutex error
+	auto logged_in_user = center(bold(text(db.get_current_user().get_username())));
+
+	auto screen = ScreenInteractive::TerminalOutput();
+
+	auto component = Container::Vertical({log_out_button, sell_items_button});
+
+	auto renderer = ftxui::Renderer(component, [&] {
+		return vbox({
+				   vbox({
+					   center(bold(text(db.get_current_user().get_username()))),
+					   separator(),
+					   vbox({center(hbox(center(sell_items_button->Render())))}) |
+						   size(HEIGHT, EQUAL, 3),
+					   vbox({
+						   center(hbox(center(log_out_button->Render())) | color(red)),
+					   }) | center |
+						   size(HEIGHT, EQUAL, 3),
+				   }) | size(WIDTH, EQUAL, 150) |
+					   borderHeavy | vcenter | hcenter,
+			   }) |
+			   vcenter;
+	});
 
 	screen.Loop(renderer);
 }
 
-void tui::employee_overview(Database& db) {}
+void tui::selling_items_interface(Database& db) {
+	struct CheckboxState {
+		bool checked;
+	};
+
+	std::vector<std::pair<Item, double>> sold_items;
+	std::vector<CheckboxState> states(db.get_item_data().size());
+	auto container = Container::Vertical({});
+	auto screen = ScreenInteractive::TerminalOutput();
+
+	for (int i = 0; db.get_item_data().size(); ++i) {
+		states[i].checked = false;
+		container->Add(Checkbox(db.get_item_data()[i].get_name(), &states[i].checked));
+	}
+
+	auto renderer = Renderer(container, [&] {
+		return container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 100) |
+			   size(WIDTH, EQUAL, 150) | center | border;
+	});
+}
+
+void tui::employee_overview(Database& db) { std::vector<User> selected_users{};
+
+
+	}
 void tui::items_overview(Database& db) {}
 void tui::create_backup(Database& db) {}
 void tui::report_interface(Database& db) {}

@@ -11,7 +11,10 @@ int main(int argc, char** argv) {
 
 	std::vector<User> user_data;
 	User nikola{"Nikola", "lozinka", "sef", 0};
+	User radnik{"Marko", "lozinka", "radnik", 0};
+
 	 user_data.push_back(nikola);
+	user_data.push_back(radnik);
 	std::vector<Item> item_data{};
 	Config paths(util::get_data_path(argv[0]));
 	paths.load_paths("config.txt");
