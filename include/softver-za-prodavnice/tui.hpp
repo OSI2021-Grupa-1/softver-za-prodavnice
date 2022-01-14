@@ -36,6 +36,11 @@ inline ftxui::Color light_gray = {148, 176, 194};
 inline ftxui::Color gray = {86, 108, 134};
 inline ftxui::Color dark_gray = {51, 60, 87};
 
-void login(Database& db);
+void login_interface(Database& db);
 void change_password(Database& db, bool quitable, std::function<void(Database&)> caller);
+void supervisor_interface(Database& db);
+void employee_overview(Database& db);
+void items_overview(Database& db);
+void create_backup(Database& db);
+void report_interface(Database& db);
 }; // namespace tui

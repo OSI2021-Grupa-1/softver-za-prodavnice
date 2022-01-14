@@ -17,5 +17,5 @@ int main(int argc, char** argv) {
 	paths.load_paths("config.txt");
 //	paths.print();
 	Database db{user_data, item_data, paths};
-	tui::login(db);
+	tui::login_interface(db);
 }

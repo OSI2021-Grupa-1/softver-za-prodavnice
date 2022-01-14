@@ -1,6 +1,6 @@
 #include "softver-za-prodavnice/tui.hpp"
 
-void tui::login(Database& db) {
+void tui::login_interface(Database& db) {
 	using namespace ftxui;
 	std::string name{};
 	std::string password{};
@@ -32,7 +32,12 @@ void tui::login(Database& db) {
 				db.write_users_to_file(db.get_pahts().get_path(
 					"korisnici")); // ne radi, ali potrebno sacekati da se implementuje ispravno
 								   // citanje podataka iz fajlova
-				change_password(db, true, login);
+
+				if (current_user.get_position() == "sef") {
+					supervisor_interface(db);
+				}
+
+				change_password(db, true, login_interface);
 			}
 		}
 	});
@@ -47,7 +52,7 @@ void tui::login(Database& db) {
 		// bilo bi dobro i ostale boje ovako definisati, da ne budu samo magicni brojevi
 		ftxui::Color input_color = light_gray;
 		if (db.find_user(name) >= 0) {
-			correct_name = name; //mozada potrebno pozivati izvan uslova
+			correct_name = name; // mozada potrebno pozivati izvan uslova
 			input_color = {bright_green};
 			// lozinku je dovoljno provjeravati samo u slucaju da je korisnicko ime tacno
 			correct_password = password;
@@ -106,37 +111,78 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 	});
 
 	auto component =
-		ftxui::Container::Vertical({password_input, password_confirmation, confirm_button, ftxui::Maybe( cancel_button, &quitable)});
+		ftxui::Container::Vertical({password_input, password_confirmation, confirm_button,
+									ftxui::Maybe(cancel_button, &quitable)});
 
 	auto renderer = ftxui::Renderer(component, [&] {
 		ftxui::Color input_color = light_gray;
 
 		entered_password = new_password;
 		entered_confimation = confirmed_password;
-		
+
 		if (db.is_password_valid(entered_password) && entered_password == entered_confimation) {
 			input_color = bright_green;
-			}
+		}
 
-		return ftxui::vbox({center(bold(ftxui::text("PROMJENA LOZINKE")) | vcenter |
-								   size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
-								borderHeavy | size(WIDTH, EQUAL, 150),
+		return ftxui::vbox(
+				   {center(bold(ftxui::text("PROMJENA LOZINKE")) | vcenter |
+						   size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
+						borderHeavy | size(WIDTH, EQUAL, 150),
 
-							ftxui::vbox({center(ftxui::hbox(
-								ftxui::text(""), password_input->Render() | size(WIDTH, LESS_THAN, 80) |
-													 ftxui::color(light_gray)))}) |
-								ftxui::borderRounded,
-							center(hbox(ftxui::text(""), password_confirmation->Render() |
-															 size(WIDTH, LESS_THAN, 80) |
-															 ftxui::color(input_color))) |
-								ftxui::borderRounded | vcenter,
-							center(hbox(center(confirm_button->Render()) | size(WIDTH, EQUAL, 12) |
-											ftxui::color(bright_green),
-										center(center(cancel_button->Render())) |
-											size(WIDTH, EQUAL, 12) | ftxui::color(red)))}) |
+					ftxui::vbox({center(ftxui::hbox(
+						ftxui::text(""), password_input->Render() | size(WIDTH, LESS_THAN, 80) |
+											 ftxui::color(light_gray)))}) |
+						ftxui::borderRounded,
+					center(hbox(ftxui::text(""), password_confirmation->Render() |
+													 size(WIDTH, LESS_THAN, 80) |
+													 ftxui::color(input_color))) |
+						ftxui::borderRounded | vcenter,
+					center(hbox(center(confirm_button->Render()) | size(WIDTH, EQUAL, 12) |
+									ftxui::color(bright_green),
+								center(center(cancel_button->Render())) | size(WIDTH, EQUAL, 12) |
+									ftxui::color(red)))}) |
 			   hcenter | color(light_gray);
 	});
 
 	screen.Loop(renderer);
-
 }
+
+void tui::supervisor_interface(Database& db) {
+	using namespace ftxui;
+	auto screen = ftxui::ScreenInteractive::TerminalOutput();
+
+	auto employee_button = ftxui::Button("PREGLED RADNIKA", [&] { employee_overview(db); });
+	auto items_button = ftxui::Button("PREGLED ARTIKALA", [&] { items_overview(db); });
+	auto backup_button = ftxui::Button("SIGURNOSNA KOPIJA", [&] { create_backup(db); });
+	auto report_button = ftxui::Button("IZVJESTAJ", [&] { report_interface(db); });
+
+	auto logout_button = ftxui::Button("ODJAVA", [&] { login_interface(db); });
+
+	auto component = ftxui::Container::Vertical(
+		{items_button, report_button, employee_button, backup_button, logout_button});
+
+	auto renderer = ftxui::Renderer(component, [&] {
+		return ftxui::vbox({center(bold(ftxui::text(db.get_current_user().get_username())) |
+								   vcenter | size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
+								borderHeavy | size(WIDTH, EQUAL, 100),
+							center(ftxui::vbox({center(items_button->Render()) |
+													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+												center(report_button->Render()) |
+													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+												center(employee_button->Render()) |
+													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+												center(backup_button->Render()) |
+													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+												center(logout_button->Render()) |
+													size(WIDTH, EQUAL, 50) | ftxui::color(red)}) |
+								   borderRounded | size(WIDTH, EQUAL, 100) | center)}) |
+			   hcenter | color(light_gray);
+	});
+
+	screen.Loop(renderer);
+}
+
+void tui::employee_overview(Database& db) {}
+void tui::items_overview(Database& db) {}
+void tui::create_backup(Database& db) {}
+void tui::report_interface(Database& db) {}
