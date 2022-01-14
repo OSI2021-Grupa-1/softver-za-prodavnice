@@ -25,9 +25,8 @@ int main(int argc, char** argv) {
 
 	Config paths(util::get_data_path(argv[0]));
 	paths.load_paths("config.txt");
-//	paths.print();
-	Database db{user_data, item_data, paths};
+	//	paths.print();
+	Database db{paths};
 
-	tui::selling_items_interface(db);
-	//tui::login_interface(db);
+	tui::login_interface(db);
 }

@@ -11,6 +11,7 @@
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
+#include "softver-za-prodavnice/util.hpp"
 
 class Database {
 	std::vector<User> user_data;
@@ -48,10 +49,6 @@ class Database {
 
 	bool is_contained(std::string barcode);
 	std::vector<Item> filter(std::function<bool(const Item&, double)> f, double comparator);
-	bool greater_price(const Item& item, double price);
-	bool greater_quantity(const Item& item, double quantity);
-	bool lesser_price(const Item& item, double price);
-	bool lesser_quantity(const Item& item, double quantity);
 	std::vector<Item> filter_name(std::string substr);
 
 	void update_items(std::vector<std::pair<Item, double>> items);
@@ -71,6 +68,8 @@ class Database {
 	void update_quantity_by_id(std::vector<Item>& copy, std::string id, double quantity);
 
 	const std::string current_date_time();
+	bool backup();
 
   private: // za lokalne metode
+	const std::string current_date_time();
 };

@@ -41,12 +41,12 @@ void tui::login_interface(Database& db) {
 					}
 				} else {
 
-					change_password(db, true, login_interface);
+					change_password(db, current_user, true, login_interface);
 				}
 			}
 		}
 	});
-
+	// Exit ne radi za linux, samo zaledi terminal
 	auto exit_button = ftxui::Button("IZLAZ", [] { exit(0); });
 
 	auto component =
@@ -84,13 +84,16 @@ void tui::login_interface(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::change_password(Database& db, bool quitable, std::function<void(Database&)> caller) {
+void tui::change_password(Database& db, User& user, bool quitable,
+						  std::function<void(Database&)> caller) {
 	using namespace ftxui;
 	std::string new_password{};		   // prvi unos, koji se resetuje pri svakom novom upisu
 	std::string entered_password{};	   // unos koji cuva stanje new_password i koji ce se slati
 									   // funkciji za promjenu lozinke
 	std::string confirmed_password{};  // lozinka koja se unosi radi sigurnosne provjere/potvrde
 	std::string entered_confimation{}; // cuva se potvrda
+
+	std::string welcome_message = "PROMJENA LOZINKE";
 
 	ftxui::InputOption password_option;
 	password_option.password = true;
@@ -103,10 +106,14 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 	auto confirm_button = ftxui::Button("PRIHVATI", [&] {
 		if (db.is_password_valid(entered_password)) {
 			if (entered_password == entered_confimation) {
-				db.change_password(db.get_current_user().get_username(), entered_password);
+				welcome_message = "LOZINKA USPJESNO PROMJENJENA";
+
+				db.change_password(user.get_username(), entered_password);
 				db.write_users_to_file(db.get_pahts().get_path("korisnici"));
 				caller(db);
 			}
+		} else {
+			welcome_message = "UNESENA LOZINKA NIJE VALIDNA";
 		}
 	});
 	auto cancel_button = ftxui::Button("ODUSTANI", [&] {
@@ -130,8 +137,8 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 		}
 
 		return ftxui::vbox(
-				   {center(bold(ftxui::text("PROMJENA LOZINKE")) | vcenter |
-						   size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
+				   {center(bold(ftxui::text(welcome_message)) | vcenter | size(HEIGHT, EQUAL, 5) |
+						   ftxui::color(white)) |
 						borderHeavy | size(WIDTH, EQUAL, 150),
 
 					ftxui::vbox({center(ftxui::hbox(
@@ -158,7 +165,7 @@ void tui::supervisor_interface(Database& db) {
 
 	auto employee_button = ftxui::Button("PREGLED RADNIKA", [&] { employee_overview(db); });
 	auto items_button = ftxui::Button("PREGLED ARTIKALA", [&] { items_overview(db); });
-	auto backup_button = ftxui::Button("SIGURNOSNA KOPIJA", [&] { create_backup(db); });
+	auto backup_button = ftxui::Button("SIGURNOSNA KOPIJA", [&] { db.backup(); });
 	auto report_button = ftxui::Button("IZVJESTAJ", [&] { report_interface(db); });
 
 	auto logout_button = ftxui::Button("ODJAVA", [&] { login_interface(db); });
@@ -386,10 +393,155 @@ void tui::selling_items_interface(Database& db) {
 	screen.Loop(main_renderer);
 }
 
-void tui::employee_overview(Database& db) { std::vector<User> selected_users{};
+void tui::employee_overview(Database& db) {
+	std::vector<User> selected_users{};
+	std::vector<User> user_data = db.get_user_data();
+	std::size_t number_of_workers = db.get_user_data().size();
+	struct CheckboxState {
+		bool checked;
+	};
+	bool password_editable = false;
+	auto create_button = ftxui::Button("NOVI NALOG", [&] { create_employee_interface(db); });
+	auto edit_button = ftxui::Button("PROMJENA LOZINKE", [&] {
+		change_password(db, selected_users[0], true, employee_overview);
+	});
 
+	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] {
+		db.delete_users(selected_users);
+		auto it = std::find(selected_users.begin(), selected_users.end(), db.get_current_user());
+		if (it != selected_users.begin()) {
+			login_interface(db);
+		}
+	});
+	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
+	std::vector<CheckboxState> states(number_of_workers);
+	auto items = Container::Vertical({});
+	for (int i = 0; i < number_of_workers; ++i) {
+		states[i].checked = false;
+		items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 	}
-void tui::items_overview(Database& db) {}
-void tui::create_backup(Database& db) {}
+
+	auto components = Container::Vertical(
+		{create_button, delete_button, back_button, items, Maybe(edit_button, &password_editable)});
+
+	auto renderer = Renderer(components, [&] {
+		user_data = db.get_user_data();
+		number_of_workers = db.get_user_data().size();
+		for (size_t i = 0; i < number_of_workers; ++i) {
+			if (states[i].checked) {
+				auto it = std::find(selected_users.begin(), selected_users.end(), user_data[i]);
+				if (it == selected_users.end()) {
+					selected_users.push_back(user_data[i]);
+				}
+			} else {
+				auto it = std::find(selected_users.begin(), selected_users.end(), user_data[i]);
+				if (it != selected_users.end()) {
+					selected_users.erase(it);
+				}
+			}
+		}
+
+		items->DetachAllChildren();
+		for (int i = 0; i < number_of_workers; ++i) {
+			// states[i].checked = false;
+			items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
+		}
+		if (selected_users.size()) {
+			password_editable = true;
+		} else {
+			password_editable = false;
+		}
+		return vbox(
+			{center(bold(text("SPISAK RADNIKA"))), separator(),
+			 items->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
+			 vbox({center(create_button->Render()) | ftxui::color(blue),
+				   center(delete_button->Render()) | ftxui::color(blue),
+				   center(edit_button->Render()) | ftxui::color(blue),
+				   center(back_button->Render()) | ftxui::color(red)
+
+			 }) | border});
+	});
+
+	auto screen = ScreenInteractive::TerminalOutput();
+	screen.Loop(renderer);
+}
+
+void tui::create_employee_interface(Database& db) {
+	using namespace ftxui;
+	std::string name{};
+	std::string password{};
+	std::string password_confirm{};
+	// posto input stalno resetuje ove stringove, potrebno ih je cuvati nakon svake provjere kako bi
+	// se mogli unijeti u fajl
+	std::string correct_name{};
+	std::string correct_password{};
+	std::string correct_new_password{};
+
+	std::string welcome_message{"SISTEM ZA UPRAVLJANJE PRODAVNICOM"};
+
+	ftxui::Component name_input = ftxui::Input(&name, "korisnicko ime");
+
+	ftxui::InputOption password_option;
+	password_option.password = true;
+	ftxui::Component password_input = ftxui::Input(&password, "lozinka", password_option);
+
+	ftxui::Component password_confirmation_input =
+		ftxui::Input(&password_confirm, "potvrdite lozinku", password_option);
+	auto screen = ftxui::ScreenInteractive::TerminalOutput();
+
+	std::vector<std::string> entries = {"Radnik", "Sef"};
+	int selected = 0;
+	auto user_type = Radiobox(&entries, &selected);
+
+	auto cancel_button = ftxui::Button("ODUSTANI", [&] { employee_overview(db); });
+	auto confirm_button = ftxui::Button("SACUVAJ", [&] {
+		std::vector<User> temp = db.get_user_data();
+		std::string position = (selected == 0) ? "Radnik" : "Sef";
+		temp.push_back({correct_name, correct_password, position, 0});
+		db.set_user_data(temp);
+		db.write_users_to_file(db.get_pahts().get_path("korisnici"));
+		employee_overview(db);
+	});
+	bool valid_account = false;
+
+	auto components =
+		Container::Vertical({name_input, password_input, password_confirmation_input, cancel_button,
+							 user_type, Maybe(confirm_button, &valid_account)});
+
+	auto renderer = Renderer(components, [&] {
+		if (name.size() > 0 && db.find_user(name) == -1) {
+			correct_name = name;
+		}
+		if (db.is_password_valid(password)) {
+			correct_password = password;
+			if (password_confirm == correct_password) {
+				valid_account = true;
+			} else {
+				valid_account = false;
+			}
+		}
+		return vbox({center(bold(text("NOVI NALOG"))), separator(),
+					 vbox({center(name_input->Render()) | ftxui::color(blue), separatorDouble(),
+						   center(password_input->Render()) | ftxui::color(blue), separatorDouble(),
+						   center(password_confirmation_input->Render()) | ftxui::color(blue),
+						   separatorDouble(),
+						   vbox({center(bold(text("Vrsta naloga: "))) | color(blue),
+
+								 center(user_type->Render()) | ftxui::color(blue)}),
+						   separatorDouble(),
+
+						   hbox({center(confirm_button->Render()) | size(WIDTH, EQUAL, 100) |
+									 ftxui::color(bright_green),
+								 center(cancel_button->Render()) | size(WIDTH, EQUAL, 100) |
+									 ftxui::color(red)}) |
+							   borderRounded
+
+					 }) | border});
+	});
+
+	screen.Loop(renderer);
+}
+
 void tui::report_interface(Database& db) {}
+void tui::items_overview(Database& db) {}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include "config.hpp"
 #include "database.hpp"
 #include "item.hpp"
@@ -41,13 +42,14 @@ inline ftxui::Color dark_gray = {51, 60, 87};
 using namespace ftxui;
 
 void login_interface(Database& db);
-void change_password(Database& db, bool quitable, std::function<void(Database&)> caller);
+void change_password(Database& db, User& user, bool quitable,
+					 std::function<void(Database&)> caller);
 
-void employee_interface( Database& db);
-void selling_items_interface( Database& db);
+void employee_interface(Database& db);
+void selling_items_interface(Database& db);
 void supervisor_interface(Database& db);
 void employee_overview(Database& db);
+void create_employee_interface(Database& db);
 void items_overview(Database& db);
-void create_backup(Database& db);
 void report_interface(Database& db);
 }; // namespace tui
