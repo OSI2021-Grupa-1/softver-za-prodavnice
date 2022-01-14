@@ -3,8 +3,14 @@
 Database::Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths)
 	: user_data(std::move(user_data)), item_data(std::move(item_data)), paths(std::move(paths)) {}
 
-// konstruktor
-Database::Database(Config& paths) : paths(paths) {}
+
+
+Database::Database(Config& paths) : paths(paths) {
+	std::string users_path = paths.get_path("korisnici");
+	std::string items_path = paths.get_path("artikli_na_stanju");
+	user_data = util::read_users_from_file(users_path);
+	item_data = util::read_items_from_file(items_path);
+}
 
 void Database::set_user_data(std::vector<User> user_data) {
 	this->user_data = std::move(user_data);
@@ -109,26 +115,6 @@ std::vector<Item> Database::filter_name(std::string substr) {
 		if (item_data[i].get_name().find(substr) != std::string::npos) ret.push_back(item_data[i]);
 	}
 	return ret;
-}
-
-bool Database::greater_price(const Item& item, double price) {
-	if (item.get_price() > price) return true;
-	return false;
-}
-
-bool Database::greater_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() > quantity) return true;
-	return false;
-}
-
-bool Database::lesser_price(const Item& item, double price) {
-	if (item.get_price() < price) return true;
-	return false;
-}
-
-bool Database::lesser_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() < quantity) return true;
-	return false;
 }
 
 bool Database::check_item_availability(const std::string& other_barcode, const int& quantity) {
