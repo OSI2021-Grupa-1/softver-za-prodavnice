@@ -14,6 +14,7 @@ class Item {
 	Item(const Item& other);
 
 	bool operator==(const Item& other) const; // potrebno za std::remove
+	Item& operator=(const Item& other);
 
 	void set_price(double price);
 	void set_quantity(double quantity);

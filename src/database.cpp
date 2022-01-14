@@ -1,9 +1,16 @@
 #include "softver-za-prodavnice/database.hpp"
 
-Database::Database(std::vector<User> user_data, std::vector<Item> item_data,
-				   std::filesystem::path data_path)
-	: user_data(std::move(user_data)), item_data(std::move(item_data)),
-	  paths(std::move(data_path)) {}
+Database::Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths)
+	: user_data(std::move(user_data)), item_data(std::move(item_data)), paths(std::move(paths)) {}
+
+
+
+Database::Database(Config& paths) : paths(paths) {
+	std::string users_path = paths.get_path("korisnici");
+	std::string items_path = paths.get_path("artikli_na_stanju");
+	user_data = util::read_users_from_file(users_path);
+	item_data = util::read_items_from_file(items_path);
+}
 
 void Database::set_user_data(std::vector<User> user_data) {
 	this->user_data = std::move(user_data);
@@ -54,11 +61,13 @@ bool Database::are_passwords_equal(const std::string& original,
 		return false;
 }
 
-size_t Database::find_user(const std::string& username) const {
-	for (size_t i = 0; i < paths.get_size(); i++) {
+// funkcija vraca indeks korisnika ako se korisnik nalazi u bazi podataka, vraca -1 ako se ne nalazi
+int Database::find_user(const std::string& username) const {
+	for (size_t i = 0; i < user_data.size(); i++) {
 		if (username == user_data[i].get_username()) return i;
 	}
-	throw std::invalid_argument("User couldn't be found");
+	return -1;
+	// throw std::invalid_argument("User couldn't be found");
 	// ne bi ga trebao nikad baciti jer se username
 	// prosljedjuje iz main-a i vec je provjeren
 }
@@ -108,26 +117,6 @@ std::vector<Item> Database::filter_name(std::string substr) {
 	return ret;
 }
 
-bool Database::greater_price(const Item& item, double price) {
-	if (item.get_price() > price) return true;
-	return false;
-}
-
-bool Database::greater_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() > quantity) return true;
-	return false;
-}
-
-bool Database::lesser_price(const Item& item, double price) {
-	if (item.get_price() < price) return true;
-	return false;
-}
-
-bool Database::lesser_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() < quantity) return true;
-	return false;
-}
-
 bool Database::check_item_availability(const std::string& other_barcode, const int& quantity) {
 
 	int i;
@@ -146,10 +135,10 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 	int position, date;
 	if (auto file = std::ifstream(path)) {
 		do {
-			std::getline(file, barcode, ',');
-			std::getline(file, name, ',');
-			std::getline(file, price, ',');
-			std::getline(file, quantity, ',');
+			std::getline(file, barcode, '#');
+			std::getline(file, name, '#');
+			std::getline(file, price, '#');
+			std::getline(file, quantity, '#');
 			std::getline(file, day, '/');
 			std::getline(file, month, '/');
 			std::getline(file, year);
@@ -247,6 +236,48 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 	}
 }
 
+void Database::write_sold_items_to_file(const std::vector<Item>& items, const std::string& date) {
+	std::fstream tmp_file;
+	std::fstream transaction_file;
+
+	std::string
+		putanja_do_pomocnog;	   // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
+	std::string putanja_do_pravog; // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
+
+	tmp_file.open(putanja_do_pomocnog, std::ios::out);
+	if (!tmp_file.is_open()) throw std::exception();
+
+	transaction_file.open(putanja_do_pravog, std::ios::in);
+	if (!transaction_file.is_open()) throw std::exception();
+
+	for (size_t i = 0; i < items.size(); i++) {
+		tmp_file << items[i] << "#" << date << std::endl;
+	}
+	tmp_file << transaction_file.rdbuf();
+
+	tmp_file.close();
+	transaction_file.close();
+
+	tmp_file.open(putanja_do_pomocnog, std::ios::in);
+	if (!tmp_file.is_open()) throw std::exception();
+
+	transaction_file.open(putanja_do_pravog, std::ios::out);
+	if (!transaction_file.is_open()) throw std::exception();
+
+	transaction_file << tmp_file.rdbuf();
+
+	tmp_file.close();
+	transaction_file.close();
+
+	tmp_file.open(
+		putanja_do_pomocnog,
+		std::ios::out); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
+	if (!tmp_file.is_open())
+		throw std::exception(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili
+								// resurse
+	tmp_file.close(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
+};
+
 const std::string Database::current_date_time() {
 	time_t now = time(0);
 	struct tm tstruct;
@@ -255,4 +286,19 @@ const std::string Database::current_date_time() {
 	strftime(buf, sizeof(buf), "%d.%m.%Y. %X", &tstruct);
 
 	return buf;
+}
+
+bool Database::backup() {
+	std::string temp_time_date = current_date_time();
+	std::filesystem::current_path(paths.get_prefix() / "backup");
+	std::string time_data = temp_time_date.substr(0, 11);
+	auto success = std::filesystem::create_directory(time_data);
+	if (success) {
+		std::filesystem::copy(paths.get_path("korisnici"),
+							  paths.get_prefix() / "backup" / time_data);
+		std::filesystem::copy(paths.get_path("artikli_na_stanju"),
+							  paths.get_prefix() / "backup" / time_data);
+		return true;
+	}
+	return false;
 }

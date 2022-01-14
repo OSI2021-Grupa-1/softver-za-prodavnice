@@ -1,10 +1,10 @@
 #pragma once
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <utility>
 #include <vector>
-#include <filesystem>
 #include "softver-za-prodavnice/util.hpp"
 
 class Config {
@@ -15,6 +15,9 @@ class Config {
 	Config(std::filesystem::path prefix) : prefix(std::move(prefix)) {}
 	size_t get_size() const;
 	std::string get_path(std::string key) const;
+
+	std::filesystem::path get_prefix() const;
+
 	void load_paths(const std::string& path);
 	// testna metoda, treba izbrisati kasnije
 	void print() {

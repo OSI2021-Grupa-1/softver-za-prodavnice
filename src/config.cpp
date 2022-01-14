@@ -20,3 +20,5 @@ void Config::load_paths(const std::string& path) {
 		std::cout << e.what();
 	}
 }
+
+std::filesystem::path Config::get_prefix() const { return prefix; }

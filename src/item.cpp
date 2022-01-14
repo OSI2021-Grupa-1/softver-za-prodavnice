@@ -11,6 +11,15 @@ bool Item::operator==(const Item& other) const {
 	return false;
 }
 
+Item& Item::operator=(const Item& other) {
+	if (this == &other) return *this;
+	barcode = other.barcode;
+	name = other.name;
+	price = other.price;
+	quantity = other.quantity;
+	return *this;
+}
+
 void Item::set_price(double price) { this->price = price; }
 
 void Item::set_quantity(double quantity) { this->quantity = quantity; }
@@ -24,6 +33,6 @@ double Item::get_price() const { return price; }
 double Item::get_quantity() const { return quantity; }
 
 std::ostream& operator<<(std::ostream& os, const Item& item) {
-	os << item.barcode << "φ" << item.name << "φ" << item.price << "φ" << item.quantity;
+	os << item.barcode << "#" << item.name << "#" << item.price << "#" << item.quantity;
 	return os;
 }

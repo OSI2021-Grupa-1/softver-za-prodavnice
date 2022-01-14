@@ -7,6 +7,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include "softver-za-prodavnice/user.hpp"
+#include "softver-za-prodavnice/item.hpp"
 
 namespace util {
 std::vector<std::string> get_lines(const std::string& path);
@@ -16,5 +18,17 @@ std::vector<std::pair<std::string, std::string>> insert_pairs(std::vector<std::s
 std::string generete_receipt_file_name(std::string current_date_time);
 std::string helper(int width, const std::string& str);
 
+std::string encrypt_decrypt(std::string pw);
+
 std::filesystem::path get_data_path(std::filesystem::path start);
+
+Item parse_item(const std::string& line);
+User parse_user(const std::string& line);
+std::vector<User> read_users_from_file(const std::string path);
+std::vector<Item> read_items_from_file(const std::string path);
+
+bool greater_price(const Item& item, double price);
+bool greater_quantity(const Item& item, double quantity);
+bool lesser_price(const Item& item, double price);
+bool lesser_quantity(const Item& item, double quantity);
 } // namespace util
