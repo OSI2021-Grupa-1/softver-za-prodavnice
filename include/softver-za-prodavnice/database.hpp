@@ -58,7 +58,7 @@ class Database {
 
 	void write_sold_items_to_file(const std::vector<Item>& items, const std::string& date);
 
-
+	bool backup();
   private: // za lokalne metode
 	const std::string current_date_time();
 };

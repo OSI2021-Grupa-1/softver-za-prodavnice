@@ -287,3 +287,18 @@ const std::string Database::current_date_time() {
 
 	return buf;
 }
+
+bool Database::backup() {
+	std::string temp_time_date = current_date_time();
+	std::filesystem::current_path(paths.get_prefix() / "backup");
+	std::string time_data = temp_time_date.substr(0, 11);
+	auto success = std::filesystem::create_directory(time_data);
+	if (success) {
+		std::filesystem::copy(paths.get_path("korisnici"),
+							  paths.get_prefix() / "backup" / time_data);
+		std::filesystem::copy(paths.get_path("artikli_na_stanju"),
+							  paths.get_prefix() / "backup" / time_data);
+		return true;
+	}
+	return false;
+}
