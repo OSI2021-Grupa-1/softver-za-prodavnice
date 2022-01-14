@@ -86,3 +86,12 @@ std::filesystem::path util::get_data_path(std::filesystem::path start) {
 	}
 	return {};
 }
+
+std::string util::encrypt_decrypt(std::string pw) {
+	char key = 'x';
+	std::string to_process = pw;
+	for (int i = 0; i < pw.size(); i++)
+		to_process[i] = to_process[i] ^ key;
+
+	return to_process;
+}
