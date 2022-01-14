@@ -41,7 +41,7 @@ void tui::login_interface(Database& db) {
 					}
 				} else {
 
-					change_password(db, true, login_interface);
+					change_password(db,current_user, true, login_interface);
 				}
 			}
 		}
@@ -84,7 +84,7 @@ void tui::login_interface(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::change_password(Database& db, bool quitable, std::function<void(Database&)> caller) {
+void tui::change_password(Database& db,User &user, bool quitable, std::function<void(Database&)> caller) {
 	using namespace ftxui;
 	std::string new_password{};		   // prvi unos, koji se resetuje pri svakom novom upisu
 	std::string entered_password{};	   // unos koji cuva stanje new_password i koji ce se slati
@@ -103,7 +103,7 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 	auto confirm_button = ftxui::Button("PRIHVATI", [&] {
 		if (db.is_password_valid(entered_password)) {
 			if (entered_password == entered_confimation) {
-				db.change_password(db.get_current_user().get_username(), entered_password);
+				db.change_password(user.get_username(), entered_password);
 				db.write_users_to_file(db.get_pahts().get_path("korisnici"));
 				caller(db);
 			}
@@ -245,8 +245,12 @@ void tui::employee_overview(Database& db) {
 	struct CheckboxState {
 		bool checked;
 	};
-
+	bool password_editable = false;
 	auto create_button = ftxui::Button("NOVI NALOG", [&] { employee_overview(db); });
+	auto edit_button = ftxui::Button("PROMJENA LOZINKE", [&] {
+		change_password(db, selected_users[0], true, employee_overview);
+	});
+
 	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] { db.delete_users(selected_users); });
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
@@ -257,7 +261,8 @@ void tui::employee_overview(Database& db) {
 		items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 	}
 
-	auto components = Container::Vertical({create_button, delete_button, back_button, items});
+	auto components = Container::Vertical(
+		{create_button, delete_button, back_button, items, Maybe(edit_button, &password_editable)});
 
 	auto renderer = Renderer(components, [&] {
 		user_data = db.get_user_data();
@@ -278,11 +283,17 @@ void tui::employee_overview(Database& db) {
 			// states[i].checked = false;
 			items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 		}
+		if (selected_users.size() == 1) {
+			password_editable = true;
+		} else {
+			password_editable = false;
+		}
 		return vbox(
 			{center(bold(text("SPISAK RADNIKA"))), separator(),
 			 items->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
 			 vbox({center(create_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(blue),
 				   center(delete_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+				   center(edit_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(blue),
 				   center(back_button->Render()) | size(WIDTH, EQUAL, 100) | ftxui::color(red)
 
 			 }) | border});

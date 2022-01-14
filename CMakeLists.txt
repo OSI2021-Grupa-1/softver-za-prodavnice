@@ -46,6 +46,3 @@ target_link_libraries(${PROJECT_NAME}
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
-add_subdirectory(ext/gtest)
-enable_testing()
-add_subdirectory(tests)

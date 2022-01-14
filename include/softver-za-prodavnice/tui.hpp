@@ -1,11 +1,11 @@
 #pragma once
 
+#include <memory>
 #include "config.hpp"
 #include "database.hpp"
 #include "item.hpp"
 #include "user.hpp"
 #include "util.hpp"
-#include <memory>
 
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
@@ -39,10 +39,11 @@ inline ftxui::Color dark_gray = {51, 60, 87};
 using namespace ftxui;
 
 void login_interface(Database& db);
-void change_password(Database& db, bool quitable, std::function<void(Database&)> caller);
+void change_password(Database& db, User& user, bool quitable,
+					 std::function<void(Database&)> caller);
 
-void employee_interface( Database& db);
-void selling_items_interface( Database& db);
+void employee_interface(Database& db);
+void selling_items_interface(Database& db);
 void supervisor_interface(Database& db);
 void employee_overview(Database& db);
 void items_overview(Database& db);
