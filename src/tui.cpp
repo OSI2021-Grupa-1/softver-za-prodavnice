@@ -269,7 +269,10 @@ void tui::employee_overview(Database& db) {
 		number_of_workers = db.get_user_data().size();
 		for (size_t i = 0; i < number_of_workers; ++i) {
 			if (states[i].checked) {
-				selected_users.push_back(user_data[i]);
+				auto it = std::find(selected_users.begin(), selected_users.end(), user_data[i]);
+				if (it == selected_users.end()) {
+					selected_users.push_back(user_data[i]);
+				}
 			} else {
 				auto it = std::find(selected_users.begin(), selected_users.end(), user_data[i]);
 				if (it != selected_users.end()) {
@@ -283,7 +286,7 @@ void tui::employee_overview(Database& db) {
 			// states[i].checked = false;
 			items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 		}
-		if (selected_users.size() == 1) {
+		if (selected_users.size()) {
 			password_editable = true;
 		} else {
 			password_editable = false;
