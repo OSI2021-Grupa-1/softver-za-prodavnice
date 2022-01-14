@@ -151,3 +151,23 @@ Item util::parse_item(const std::string& line) {
 	Item ret(data[0], data[1], std::stod(data[2]), std::stod(data[3]));
 	return ret;
 }
+
+bool util::greater_price(const Item& item, double price) {
+	if (item.get_price() > price) return true;
+	return false;
+}
+
+bool util::greater_quantity(const Item& item, double quantity) {
+	if (item.get_quantity() > quantity) return true;
+	return false;
+}
+
+bool util::lesser_price(const Item& item, double price) {
+	if (item.get_price() < price) return true;
+	return false;
+}
+
+bool util::lesser_quantity(const Item& item, double quantity) {
+	if (item.get_quantity() < quantity) return true;
+	return false;
+}

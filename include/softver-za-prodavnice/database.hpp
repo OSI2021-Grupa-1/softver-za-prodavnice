@@ -46,10 +46,6 @@ class Database {
 
 	bool is_contained(std::string barcode);
 	std::vector<Item> filter(std::function<bool(const Item&, double)> f, double comparator);
-	bool greater_price(const Item& item, double price);
-	bool greater_quantity(const Item& item, double quantity);
-	bool lesser_price(const Item& item, double price);
-	bool lesser_quantity(const Item& item, double quantity);
 	std::vector<Item> filter_name(std::string substr);
 
 	bool check_item_availability(const std::string& other_barcode, const int& quantity);

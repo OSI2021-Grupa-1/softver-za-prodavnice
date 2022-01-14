@@ -118,26 +118,6 @@ std::vector<Item> Database::filter_name(std::string substr) {
 	return ret;
 }
 
-bool Database::greater_price(const Item& item, double price) {
-	if (item.get_price() > price) return true;
-	return false;
-}
-
-bool Database::greater_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() > quantity) return true;
-	return false;
-}
-
-bool Database::lesser_price(const Item& item, double price) {
-	if (item.get_price() < price) return true;
-	return false;
-}
-
-bool Database::lesser_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() < quantity) return true;
-	return false;
-}
-
 bool Database::check_item_availability(const std::string& other_barcode, const int& quantity) {
 
 	int i;
