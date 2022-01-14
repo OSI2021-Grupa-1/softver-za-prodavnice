@@ -48,6 +48,5 @@ void supervisor_interface(Database& db);
 void employee_overview(Database& db);
 void create_employee_interface(Database& db);
 void items_overview(Database& db);
-void create_backup(Database& db);
 void report_interface(Database& db);
 }; // namespace tui

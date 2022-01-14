@@ -76,6 +76,7 @@ std::string util::helper(int width, const std::string& str) {
 }
 
 std::filesystem::path util::get_data_path(std::filesystem::path start) {
+	start = std::filesystem::absolute(start);
 	static constexpr std::string_view target = "data";
 	while (!start.empty() && (start.parent_path() != start.root_directory())) {
 		auto ret = start / target;
@@ -90,8 +91,7 @@ std::filesystem::path util::get_data_path(std::filesystem::path start) {
 std::string util::encrypt_decrypt(std::string pw) {
 	char key = 'x';
 	std::string to_process = pw;
-	for (int i = 0; i < pw.size(); i++)
-		to_process[i] = to_process[i] ^ key;
+	for (int i = 0; i < pw.size(); i++) to_process[i] = to_process[i] ^ key;
 
 	return to_process;
 }
@@ -106,7 +106,7 @@ std::vector<User> util::read_users_from_file(const std::string path) {
 		}
 		return ret;
 	} else
-		throw std::exception("File couldn't be opened\n");
+		throw "File couldn't be opened";
 }
 
 User util::parse_user(const std::string& line) {
@@ -134,7 +134,7 @@ std::vector<Item> util::read_items_from_file(const std::string path) {
 		}
 		return ret;
 	} else
-		throw std::exception("File couldn't be opened\n");
+		throw "File couldn't be opened\n";
 }
 
 Item util::parse_item(const std::string& line) {

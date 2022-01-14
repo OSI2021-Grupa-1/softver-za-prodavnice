@@ -46,7 +46,7 @@ void tui::login_interface(Database& db) {
 			}
 		}
 	});
-
+	// Exit ne radi za linux, samo zaledi terminal
 	auto exit_button = ftxui::Button("IZLAZ", [] { exit(0); });
 
 	auto component =
@@ -93,6 +93,8 @@ void tui::change_password(Database& db, User& user, bool quitable,
 	std::string confirmed_password{};  // lozinka koja se unosi radi sigurnosne provjere/potvrde
 	std::string entered_confimation{}; // cuva se potvrda
 
+	std::string welcome_message = "PROMJENA LOZINKE";
+
 	ftxui::InputOption password_option;
 	password_option.password = true;
 	ftxui::Component password_input = ftxui::Input(&new_password, "nova lozinka", password_option);
@@ -104,10 +106,14 @@ void tui::change_password(Database& db, User& user, bool quitable,
 	auto confirm_button = ftxui::Button("PRIHVATI", [&] {
 		if (db.is_password_valid(entered_password)) {
 			if (entered_password == entered_confimation) {
+				welcome_message = "LOZINKA USPJESNO PROMJENJENA";
+
 				db.change_password(user.get_username(), entered_password);
 				db.write_users_to_file(db.get_pahts().get_path("korisnici"));
 				caller(db);
 			}
+		} else {
+			welcome_message = "UNESENA LOZINKA NIJE VALIDNA";
 		}
 	});
 	auto cancel_button = ftxui::Button("ODUSTANI", [&] {
@@ -131,8 +137,8 @@ void tui::change_password(Database& db, User& user, bool quitable,
 		}
 
 		return ftxui::vbox(
-				   {center(bold(ftxui::text("PROMJENA LOZINKE")) | vcenter |
-						   size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
+				   {center(bold(ftxui::text(welcome_message)) | vcenter | size(HEIGHT, EQUAL, 5) |
+						   ftxui::color(white)) |
 						borderHeavy | size(WIDTH, EQUAL, 150),
 
 					ftxui::vbox({center(ftxui::hbox(
@@ -159,7 +165,7 @@ void tui::supervisor_interface(Database& db) {
 
 	auto employee_button = ftxui::Button("PREGLED RADNIKA", [&] { employee_overview(db); });
 	auto items_button = ftxui::Button("PREGLED ARTIKALA", [&] { items_overview(db); });
-	auto backup_button = ftxui::Button("SIGURNOSNA KOPIJA", [&] { create_backup(db); });
+	auto backup_button = ftxui::Button("SIGURNOSNA KOPIJA", [&] { db.backup(); });
 	auto report_button = ftxui::Button("IZVJESTAJ", [&] { report_interface(db); });
 
 	auto logout_button = ftxui::Button("ODJAVA", [&] { login_interface(db); });
@@ -252,7 +258,13 @@ void tui::employee_overview(Database& db) {
 		change_password(db, selected_users[0], true, employee_overview);
 	});
 
-	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] { db.delete_users(selected_users); });
+	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] {
+		db.delete_users(selected_users);
+		auto it = std::find(selected_users.begin(), selected_users.end(), db.get_current_user());
+		if (it != selected_users.begin()) {
+			login_interface(db);
+		}
+	});
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
 	std::vector<CheckboxState> states(number_of_workers);
@@ -383,6 +395,5 @@ void tui::create_employee_interface(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::items_overview(Database& db) {}
-void tui::create_backup(Database& db) {}
 void tui::report_interface(Database& db) {}
+void tui::items_overview(Database& db) {}

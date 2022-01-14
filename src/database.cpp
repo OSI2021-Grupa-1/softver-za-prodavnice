@@ -1,9 +1,8 @@
 #include "softver-za-prodavnice/database.hpp"
+#include <filesystem>
 
 Database::Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths)
 	: user_data(std::move(user_data)), item_data(std::move(item_data)), paths(std::move(paths)) {}
-
-
 
 Database::Database(Config& paths) : paths(paths) {
 	std::string users_path = paths.get_path("korisnici");
@@ -245,10 +244,10 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	std::string putanja_do_pravog; // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
 
 	tmp_file.open(putanja_do_pomocnog, std::ios::out);
-	if (!tmp_file.is_open()) throw std::exception();
+	if (!tmp_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file.open(putanja_do_pravog, std::ios::in);
-	if (!transaction_file.is_open()) throw std::exception();
+	if (!transaction_file.is_open()) throw "File couldn't be opened";
 
 	for (size_t i = 0; i < items.size(); i++) {
 		tmp_file << items[i] << "#" << date << std::endl;
@@ -259,10 +258,10 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	transaction_file.close();
 
 	tmp_file.open(putanja_do_pomocnog, std::ios::in);
-	if (!tmp_file.is_open()) throw std::exception();
+	if (!tmp_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file.open(putanja_do_pravog, std::ios::out);
-	if (!transaction_file.is_open()) throw std::exception();
+	if (!transaction_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file << tmp_file.rdbuf();
 
@@ -273,8 +272,8 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 		putanja_do_pomocnog,
 		std::ios::out); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
 	if (!tmp_file.is_open())
-		throw std::exception(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili
-								// resurse
+		throw "Fajl nije otvoren"; // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi
+								   // trosili resurse
 	tmp_file.close(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
 };
 
@@ -290,12 +289,17 @@ const std::string Database::current_date_time() {
 
 bool Database::backup() {
 	std::string temp_time_date = current_date_time();
-	std::filesystem::current_path(paths.get_prefix() / "backup");
+
+	std::filesystem::current_path(paths.get_prefix());
+	if (!std::filesystem::exists(paths.get_prefix() / "backup")) {
+		std::filesystem::create_directories(paths.get_prefix() / "backup");
+	}
+
 	std::string time_data = temp_time_date.substr(0, 11);
-	auto success = std::filesystem::create_directory(time_data);
+	auto success = std::filesystem::create_directory(paths.get_prefix() / "backup" / time_data);
 	if (success) {
 		std::filesystem::copy(paths.get_path("korisnici"),
-							  paths.get_prefix() / "backup" / time_data);
+							  paths.get_prefix() / "backup" / time_data / "korisnici.txt");
 		std::filesystem::copy(paths.get_path("artikli_na_stanju"),
 							  paths.get_prefix() / "backup" / time_data);
 		return true;
