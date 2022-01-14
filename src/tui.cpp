@@ -1,7 +1,6 @@
 #include "softver-za-prodavnice/tui.hpp"
 
 void tui::login(Database& db) {
-	using namespace ftxui;
 	std::string name{};
 	std::string password{};
 	// posto input stalno resetuje ove stringove, potrebno ih je cuvati nakon svake provjere kako bi
@@ -139,4 +138,52 @@ void tui::change_password(Database& db, bool quitable, std::function<void(Databa
 
 	screen.Loop(renderer);
 
+}
+
+void tui::employee_interface(const Database& db, const std::string& current_user) {
+	auto log_out_button = Button("ODJAVA", [&db] { tui::login(db); });
+	auto sell_items_button = Button("PRODAJA ARTIKALA", [&db] { /*pozvati funkciju za prodaju*/ });
+	auto logged_in_user = center(bold(text(current_user)));
+
+	auto screen = ScreenInteractive::TerminalOutput();
+
+	auto component = Container::Vertical({log_out_button, sell_items_button});
+
+	auto renderer = ftxui::Renderer(component, [&] { 
+		return vbox({
+			vbox({
+				center(bold(text(current_user))), separator(),
+				vbox({center(hbox(center(sell_items_button->Render())))}) | size(HEIGHT, EQUAL, 3),
+				vbox({
+				  center(hbox(center(log_out_button->Render())) | color(red)),
+				}) | center | size(HEIGHT, EQUAL, 3),
+			}) | size(WIDTH, EQUAL, 150) | borderHeavy | vcenter | hcenter,
+																		}) | vcenter;
+	});
+
+
+	screen.Loop(renderer);
+}
+
+void tui::selling_items_interface(const Database& db, const std::string& current_user) {
+	struct CheckboxState {
+		bool checked;
+	};
+
+	std::vector<std::pair<Item, double>> sold_items;
+	std::vector<CheckboxState> states(db.get_item_data().size());
+	auto container = Container::Vertical({});
+	auto screen = ScreenInteractive::TerminalOutput();
+
+	for (int i = 0; db.get_item_data().size(); ++i) {
+		states[i].checked = false;
+		container->Add(Checkbox(db.get_item_data()[i].get_name(), &states[i].checked));
+	}
+
+	  auto renderer = Renderer(container, [&] {
+		return container->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 100) |
+			   size(WIDTH, EQUAL, 150) | center | border;
+	});
+
+	screen.Loop(renderer);
 }
