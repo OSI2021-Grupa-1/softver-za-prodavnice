@@ -7,6 +7,23 @@
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/util.hpp"
 
+namespace {
+ftxui::Color purple = {93, 39, 93};
+ftxui::Color red = {177, 62, 83};
+ftxui::Color orange = {239, 125, 87};
+ftxui::Color yellow = {255, 205, 117};
+ftxui::Color bright_green = {167, 240, 112};
+ftxui::Color dark_green = {56, 183, 100};
+ftxui::Color teal = {37, 113, 121};
+ftxui::Color dark_blue = {41, 54, 111};
+ftxui::Color blue = {59, 93, 201};
+ftxui::Color light_blue = {65, 166, 246};
+ftxui::Color cyan = {115, 239, 247};
+ftxui::Color white = {244, 244, 244};
+ftxui::Color light_gray = {148, 176, 194};
+ftxui::Color gray = {86, 108, 134};
+ftxui::Color dark_gray = {51, 60, 87};
+} 
 
 void tui::report_interface(Database& db) {
 

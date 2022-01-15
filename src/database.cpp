@@ -146,7 +146,7 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 	std::vector<Item> report{};
 	std::string barcode, name, price, quantity, day, month, year;
 	int position, date;
-	if (auto file = std::ifstream(paths.get_path("prodani_artikli"))) {  // <<<<<<<<<<<<<<<<<<<< OVDJE TREBA DEFINISATI FAJL
+	if (auto file = std::ifstream(paths.get_path("prodani_artikli"))) { 
 		do {
 			std::getline(file, barcode, '#');
 			std::getline(file, name, '#');
@@ -192,7 +192,7 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 								const std::string& date) {
-	// nije jos definisana putanja gdje ce se fajl praviti
+	// nije jos definisana putanja gdje ce se fajl praviti <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 	// std::string path = paths.get_path("");
 
 	std::string file_name = util::generete_receipt_file_name(date);
@@ -208,10 +208,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << util::helper(width, "Broj telefona") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << date << '\n';
-		file << std::left << "Blagajnik: "
-			 << "ph" << '\n';
-		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
-		// ta staticka promjenljiva bi se morala cuvati u fajlu
+		file << std::left << "Blagajnik: " << get_current_user().get_username() << '\n';
 		file << "\n";
 		file << std::left << std::setw(23) << std::setfill(' ') << "Artikal" << std::setw(9)
 			 << "Cijena" << std::setw(8) << "Kol." << std::setw(10) << "Ukupno" << std::endl;
