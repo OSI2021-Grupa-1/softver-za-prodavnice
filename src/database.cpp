@@ -248,6 +248,18 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 	}
 }
 
+// provjerava da li se u bazi podataka nalazi bar jedan sef
+
+std::size_t Database::number_of_bosses() const {
+	std::size_t ret{};
+	for (auto user : user_data) {
+		if (user.get_position() == "sef") {
+			++ret;
+		}
+	}
+	return ret;
+}
+
 void Database::write_sold_items_to_file(const std::vector<Item>& items, const std::string& date) {
 	std::fstream tmp_file;
 	std::fstream transaction_file;

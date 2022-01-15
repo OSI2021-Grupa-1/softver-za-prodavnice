@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #pragma warning(disable : 4996) // zbog localtime(u current_date_time funkciji), moze biti nesigurno
 #include <algorithm>
 #include <functional>
@@ -36,6 +37,7 @@ class Database {
 	void delete_users(const std::vector<User>& users);
 	void delete_items(const std::vector<Item>& items);
 
+	std::size_t number_of_bosses() const;
 	void change_password(const std::string& usr, const std::string& new_pw);
 	void reset_attempts(const std::string& usr);
 	bool is_password_correct(const std::string& usr, const std::string& input) const;

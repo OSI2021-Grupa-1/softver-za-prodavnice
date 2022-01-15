@@ -31,11 +31,12 @@ void tui::login_interface(Database& db) {
 		if (db.find_user(correct_name) >= 0) {
 			if (db.is_password_correct(correct_name, correct_password)) {
 				welcome_message = "USPJESNA PRIJAVA";
-				User current_user = db.get_user_data()[db.find_user(correct_name)];
-				db.set_current_user(current_user);
+
 				// welcome_message = db.get_user_data()[db.find_user(correct_name)].get_position();
 				std::vector<User> temp_usr_data = db.get_user_data();
 				temp_usr_data[db.find_user(correct_name)].increase_num_logins();
+				User current_user = db.get_user_data()[db.find_user(correct_name)];
+				db.set_current_user(current_user);
 				db.set_user_data(temp_usr_data);
 				db.write_users_to_file(db.get_pahts().get_path(
 					"korisnici")); // ne radi, ali potrebno sacekati da se implementuje ispravno
@@ -417,10 +418,27 @@ void tui::employee_overview(Database& db) {
 	});
 
 	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] {
-		db.delete_users(selected_users);
+		bool should_logout = false;
+		User boss{};
+		// ukoliko postoji samo jedan sef, on se mora ukloniti iz vektora za brisanje jer baza
+		// podataka u svakom trenutku mora imati bar jednog sefa
+		if (db.number_of_bosses() == 1) { // brise sefa iz koleckije za brisanje
+			auto temp = db.get_user_data();
+			for (auto& user : temp) {
+				if (user.get_position() == "sef") {
+					boss = user;
+				}
+			}
+			auto it = std::find(selected_users.begin(), selected_users.end(), boss);
+			if (it != selected_users.end()) {
+
+				selected_users.erase(it);
+			}
+		}
+		db.delete_users(selected_users); // izbrise korisnike
 		auto it = std::find(selected_users.begin(), selected_users.end(), db.get_current_user());
-		if (it == selected_users.begin()) {
-			login_interface(db);
+		if (it != selected_users.end()) {
+			login_interface(db); // ako je trenutni korisnik izbrisao sam sebe, vraca na pocetni
 		}
 		selected_users = {};
 	});
@@ -430,7 +448,8 @@ void tui::employee_overview(Database& db) {
 	auto items = Container::Vertical({});
 	for (int i = 0; i < number_of_workers; ++i) {
 		states[i].checked = false;
-		items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
+		items->Add(Checkbox(user_data[i].get_username() + "    " + user_data[i].get_position(),
+							&states[i].checked));
 	}
 
 	auto components = Container::Vertical(
@@ -513,7 +532,7 @@ void tui::create_employee_interface(Database& db) {
 		auto pos = db.find_user("admin");
 		db.set_user_data(temp);
 
-		if (pos != -1) {
+		if (pos != -1 && db.number_of_bosses()) {
 			std::vector<User> removal;
 			removal.push_back(temp[pos]);
 			db.delete_users(removal);
