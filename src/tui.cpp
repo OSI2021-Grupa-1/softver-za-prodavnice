@@ -597,7 +597,6 @@ void tui::create_employee_interface(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::report_interface(Database& db) {}
 
 void tui::items_overview(Database& db) {
 	struct CheckboxState {
@@ -766,6 +765,8 @@ void tui::items_overview(Database& db) {
 
 	screen.Loop(renderer);
 }
+
+
 
 void tui::create_item_interface(Database& db) {
 

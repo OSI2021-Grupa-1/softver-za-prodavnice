@@ -142,11 +142,11 @@ bool Database::check_item_availability(const std::string& other_barcode, const d
 }
 
 std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date,
-										  const int& end_date, std::string& path) {
-	std::vector<Item> report;
+										  const int& end_date) {
+	std::vector<Item> report{};
 	std::string barcode, name, price, quantity, day, month, year;
 	int position, date;
-	if (auto file = std::ifstream(path)) {
+	if (auto file = std::ifstream(paths.get_path("prodani_artikli"))) {  // <<<<<<<<<<<<<<<<<<<< OVDJE TREBA DEFINISATI FAJL
 		do {
 			std::getline(file, barcode, '#');
 			std::getline(file, name, '#');
@@ -157,13 +157,12 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 			std::getline(file, year);
 
 			date = stoi(year + month + day);
-			// std::cout << date << std::endl;
 
 			if (date >= start_date && date <= end_date) {
 				if (search_item_in_vector(items, barcode) !=
 					-1) { // Provjerava da li se za ucitani artikal trazi izvjestaj
-					if ((position = search_item_in_vector(report, barcode)) ==
-						-1) { // Provjerava da li se artikal vec nalazi u izvjestaju
+					position = search_item_in_vector(report, barcode);
+					if (position == -1) { // Provjerava da li se artikal vec nalazi u izvjestaju
 						Item new_item(barcode, name, std::stod(price), std::stod(quantity));
 						report.push_back(new_item);
 					} else {
@@ -173,7 +172,7 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 					}
 				}
 			}
-		} while (date <= end_date && file.eof() != 0);
+		} while (file.eof() == 0 && date >= start_date);
 		file.close();
 		return report;
 	} else
@@ -190,6 +189,7 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 }
 
 // provjera stanja dostupnosti se provjerava prije ove funkcije
+
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 								const std::string& date) {
 	// nije jos definisana putanja gdje ce se fajl praviti
@@ -205,16 +205,18 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << std::setw(width) << std::setfill('=') << "\n";
 		file << util::helper(width, "Naziv prodavnice") << "\n";
 		file << util::helper(width, "Adresa") << "\n";
-		file << util::helper(width, "bilo sta") << "\n";
+		file << util::helper(width, "Broj telefona") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << date << '\n';
-		file << std::left << "Blagajnik: " << current_user.get_username() << '\n';
+		file << std::left << "Blagajnik: "
+			 << "ph" << '\n';
 		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
 		// ta staticka promjenljiva bi se morala cuvati u fajlu
 		file << "\n";
-		file << std::left << std::setw(27) << std::setfill(' ') << "Artikal" << std::setw(7)
-			 << "Cijena" << std::setw(6) << "Kol." << std::setw(8) << "Ukupno" << std::endl;
+		file << std::left << std::setw(23) << std::setfill(' ') << "Artikal" << std::setw(9)
+			 << "Cijena" << std::setw(8) << "Kol." << std::setw(10) << "Ukupno" << std::endl;
 		file << std::setw(width) << std::setfill('-') << "" << '\n';
+		file << std::setfill(' ');
 		for (int i = 0; i < sold_items.size(); i++) {
 			double price = sold_items[i].first.get_price();
 			double quantity = sold_items[i].second;
@@ -240,7 +242,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 			 << std::setw(13) << "Osnovica" << std::setw(8) << "Iznos" << std::endl;
 		file << std::left << std::setw(15) << "PDV 17%" << std::setw(12) << "17.00" << std::setw(13)
 			 << sum - sum * 0.17 << std::setw(8) << sum * 0.17 << std::endl; // PDV hardkodovan
-		file << util::helper(width, "Naziv prodavnice") << "\n";
+		file << util::helper(width, "Hvala na posjeti!") << "\n";
 		file << std::setw(width) << std::setfill('=') << "" << '\n';
 
 	} else {
