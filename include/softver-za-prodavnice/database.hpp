@@ -37,6 +37,7 @@ class Database {
 	void delete_items(const std::vector<Item>& items);
 
 	void change_password(const std::string& usr, const std::string& new_pw);
+	void reset_attempts(const std::string& usr);
 	bool is_password_correct(const std::string& usr, const std::string& input) const;
 	bool are_passwords_equal(const std::string& original, const std::string& confirmation) const;
 	bool is_password_valid(std::string& pw) const { return pw.size() >= 8; }

@@ -36,6 +36,12 @@ void Database::delete_items(const std::vector<Item>& items) {
 	write_items_to_file(paths.get_path("artikli_na_stanju"));
 }
 
+void Database::reset_attempts(const std::string& usr) {
+	auto it = find_user(std::move(usr));
+	user_data[it].reset_num_logins();
+	write_users_to_file(paths.get_path("korisnici"));
+}
+
 void Database::change_password(const std::string& usr, const std::string& new_pw) {
 	if (new_pw.length() < 8)
 		throw std::length_error("Password too short"); // mora se primiti u interfejsu
@@ -117,7 +123,7 @@ std::vector<Item> Database::filter_name(std::string substr) {
 }
 
 void Database::update_items(std::vector<std::pair<Item, double>> items) {
-	for (auto item : items) {
+	for (auto& item : items) {
 		auto it = std::find(item_data.begin(), item_data.end(), item.first);
 		it->set_quantity(it->get_quantity() - item.second);
 	}

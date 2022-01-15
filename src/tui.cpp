@@ -1,6 +1,7 @@
 #include "softver-za-prodavnice/tui.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <string>
 #include "ftxui/component/component.hpp"
 #include "ftxui/dom/elements.hpp"
@@ -54,7 +55,11 @@ void tui::login_interface(Database& db) {
 		}
 	});
 	// Exit ne radi za linux, samo zaledi terminal
-	auto exit_button = ftxui::Button("IZLAZ", [] { exit(0); });
+	auto exit_button = ftxui::Button("IZLAZ", [&] {
+		screen.ExitLoopClosure();
+
+		abort();
+	});
 
 	auto component =
 		ftxui::Container::Vertical({name_input, password_input, log_in_button, exit_button});
@@ -109,15 +114,23 @@ void tui::change_password(Database& db, User& user, bool quitable,
 		ftxui::Input(&confirmed_password, "potvrdite lozinku", password_option);
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
-
+	// treba proivjeriti da li se treba vratiti na prethodni ekran ili nastaviti dalje, to se moze
+	// preko onog bool, treba resetovati broj prijava
 	auto confirm_button = ftxui::Button("PRIHVATI", [&] {
 		if (db.is_password_valid(entered_password)) {
 			if (entered_password == entered_confimation) {
 				welcome_message = "LOZINKA USPJESNO PROMJENJENA";
 
 				db.change_password(user.get_username(), entered_password);
+				db.reset_attempts(user.get_username());
+
 				db.write_users_to_file(db.get_pahts().get_path("korisnici"));
-				caller(db);
+
+				if (db.get_current_user().get_position() == "sef") {
+					supervisor_interface(db);
+				} else {
+					employee_interface(db);
+				}
 			}
 		} else {
 			welcome_message = "UNESENA LOZINKA NIJE VALIDNA";
@@ -185,13 +198,13 @@ void tui::supervisor_interface(Database& db) {
 								   vcenter | size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
 								borderHeavy | size(WIDTH, EQUAL, 100),
 							center(ftxui::vbox({center(items_button->Render()) |
-													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(report_button->Render()) |
-													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(employee_button->Render()) |
-													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(backup_button->Render()) |
-													size(WIDTH, EQUAL, 100) | ftxui::color(blue),
+													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(logout_button->Render()) |
 													size(WIDTH, EQUAL, 50) | ftxui::color(red)}) |
 								   borderRounded | size(WIDTH, EQUAL, 100) | center)}) |
@@ -409,6 +422,7 @@ void tui::employee_overview(Database& db) {
 		if (it == selected_users.begin()) {
 			login_interface(db);
 		}
+		selected_users = {};
 	});
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
@@ -450,11 +464,11 @@ void tui::employee_overview(Database& db) {
 			password_editable = false;
 		}
 		return vbox(
-			{center(bold(text("SPISAK RADNIKA"))), separator(),
+			{center(bold(text("PREGLED RADNIKA"))), separator(),
 			 items->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
-			 vbox({center(create_button->Render()) | ftxui::color(blue),
-				   center(delete_button->Render()) | ftxui::color(blue),
-				   center(edit_button->Render()) | ftxui::color(blue),
+			 vbox({center(create_button->Render()) | ftxui::color(yellow),
+				   center(delete_button->Render()) | ftxui::color(yellow),
+				   center(edit_button->Render()) | ftxui::color(yellow),
 				   center(back_button->Render()) | ftxui::color(red)
 
 			 }) | border});
@@ -496,7 +510,14 @@ void tui::create_employee_interface(Database& db) {
 		std::vector<User> temp = db.get_user_data();
 		std::string position = (selected == 0) ? "radnik" : "sef";
 		temp.push_back({correct_name, correct_password, position, 0});
+		auto pos = db.find_user("admin");
 		db.set_user_data(temp);
+
+		if (pos != -1) {
+			std::vector<User> removal;
+			removal.push_back(temp[pos]);
+			db.delete_users(removal);
+		}
 		db.write_users_to_file(db.get_pahts().get_path("korisnici"));
 		employee_overview(db);
 	});
@@ -518,23 +539,24 @@ void tui::create_employee_interface(Database& db) {
 				valid_account = false;
 			}
 		}
-		return vbox({center(bold(text("NOVI NALOG"))), separator(),
-					 vbox({center(name_input->Render()) | ftxui::color(blue), separatorDouble(),
-						   center(password_input->Render()) | ftxui::color(blue), separatorDouble(),
-						   center(password_confirmation_input->Render()) | ftxui::color(blue),
-						   separatorDouble(),
-						   vbox({center(bold(text("Vrsta naloga: "))) | color(blue),
+		return vbox(
+			{center(bold(text("NOVI NALOG"))), separator(),
+			 vbox({center(name_input->Render()) | ftxui::color(yellow), separatorDouble(),
+				   center(password_input->Render()) | ftxui::color(yellow), separatorDouble(),
+				   center(password_confirmation_input->Render()) | ftxui::color(yellow),
+				   separatorDouble(),
+				   vbox({center(bold(text("Vrsta naloga: "))) | color(yellow),
 
-								 center(user_type->Render()) | ftxui::color(blue)}),
-						   separatorDouble(),
+						 center(user_type->Render()) | ftxui::color(yellow)}),
+				   separatorDouble(),
 
-						   hbox({center(confirm_button->Render()) | size(WIDTH, EQUAL, 100) |
-									 ftxui::color(bright_green),
-								 center(cancel_button->Render()) | size(WIDTH, EQUAL, 100) |
-									 ftxui::color(red)}) |
-							   borderRounded
+				   hbox({center(confirm_button->Render()) | size(WIDTH, EQUAL, 100) |
+							 ftxui::color(bright_green),
+						 center(cancel_button->Render()) | size(WIDTH, EQUAL, 100) |
+							 ftxui::color(red)}) |
+					   borderRounded
 
-					 }) | border});
+			 }) | border});
 	});
 
 	screen.Loop(renderer);
@@ -572,7 +594,7 @@ void tui::items_overview(Database& db) {
 
 	bool item_editable = false;
 	auto create_button = ftxui::Button("NOVI ARTIKAL", [&] { create_item_interface(db); });
-	auto edit_button = ftxui::Button("IZMJENI KOLICINU", [&] {
+	auto edit_button = ftxui::Button("IZMIJENI KOLICINU", [&] {
 		db.change_quantity(std::move(selected_items[0].get_barcode()), new_quantity);
 		for (auto& item : items_for_display) {
 			if (item.get_barcode() == selected_items[0].get_barcode()) {
@@ -581,7 +603,7 @@ void tui::items_overview(Database& db) {
 		}
 		db.write_items_to_file(db.get_pahts().get_path("artikli_na_stanju"));
 	});
-	auto filter_button = ftxui::Button("primjeni", [&] {
+	auto filter_button = ftxui::Button("primijeni", [&] {
 		double comparator{};
 		if (filter_value == "") {
 			comparator = 0;
@@ -608,6 +630,7 @@ void tui::items_overview(Database& db) {
 				items_for_display.erase(it);
 			}
 		}
+		selected_items = {};
 	});
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
@@ -682,7 +705,7 @@ void tui::items_overview(Database& db) {
 		}
 
 		return ftxui::vbox(
-			{center(bold(text("SPISAK ARTIKALA"))), separator(),
+			{center(bold(text("PREGLED ARTIKALA"))), separator(),
 			 ftxui::hbox(
 				 {ftxui::vbox({
 					  legend,
@@ -693,10 +716,10 @@ void tui::items_overview(Database& db) {
 							   filter_button->Render() | ftxui::size(HEIGHT, EQUAL, 3)}) |
 					  border}),
 
-			 vbox({center(create_button->Render()) | ftxui::color(blue),
-				   center(delete_button->Render()) | ftxui::color(blue),
+			 vbox({center(create_button->Render()) | ftxui::color(yellow),
+				   center(delete_button->Render()) | ftxui::color(yellow),
 				   center(
-					   ftxui::hbox({center(edit_button->Render()) | ftxui::color(blue),
+					   ftxui::hbox({center(edit_button->Render()) | ftxui::color(yellow),
 									center(bold(text("  "))), center(quantity_input->Render())}) |
 					   border),
 				   center(back_button->Render()) | ftxui::color(red)
