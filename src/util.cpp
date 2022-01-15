@@ -1,6 +1,7 @@
 #include "softver-za-prodavnice/util.hpp"
 #include <list>
 #include <stdexcept>
+#include "softver-za-prodavnice/database.hpp"
 
 std::vector<std::string> util::get_lines(const std::string& path) {
 	std::vector<std::string> ret;
@@ -175,9 +176,35 @@ bool util::lesser_quantity(const Item& item, double quantity) {
 
 bool util::is_leap(int year) { return (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)); }
 
-bool util::is_valid_date(int d, int m, int y) {
+bool util::current_date_valid(int d, int m, int y, std::string curr_date) {
+	std::string current_date = curr_date;
+
+	std::string year = current_date.substr(6, 4);
+	std::string month = current_date.substr(3, 2);
+	std::string day = current_date.substr(0, 2);
+
+	int date = std::stoi(year + month + day);
+
+	day = std::to_string(d);
+	if (d < 10) day = "0" + day;
+
+	month = std::to_string(m);
+	if (m < 10) month = "0" + month;
+
+	year = std::to_string(y);
+
+	int new_date = stoi(year + month + day);
+
+	if (new_date > date) return false;
+	return true;
+}
+
+bool util::is_valid_date(int d, int m, int y, std::string curr_date) {
+	
 	const int MAX_VALID_YR = 9999;
 	const int MIN_VALID_YR = 1800;
+
+	if (!current_date_valid(d, m, y, curr_date)) return false;
 
 	if (y > MAX_VALID_YR || y < MIN_VALID_YR) return false;
 	if (m < 1 || m > 12) return false;
@@ -192,4 +219,53 @@ bool util::is_valid_date(int d, int m, int y) {
 	if (m == 4 || m == 6 || m == 9 || m == 11) return (d <= 30);
 
 	return true;
+}
+
+int util::number_of_days(int m, int y) {
+
+	if (m == 2) {
+		if (is_leap(y)) return 29;
+		else
+			return 28;
+	}
+
+	if (m == 4 || m == 6 || m == 9 || m == 11) return 30;
+	else
+		return 31;
+}
+
+int util::week_increase(int d, int m, int y) {
+	std::string day, month, year;
+	if (m == 2) {
+		if (is_leap(y)) {
+			if ((d + 7) > 22) m++;
+			d = (d + 7) % 29;
+		} else {
+			if ((d + 7) > 21) m++;
+			d = (d + 7) % 28;
+		}
+	}
+
+	if (m == 4 || m == 6 || m == 9 || m == 11) {
+		if ((d + 7) > 30) m++;
+		d = (d + 7) % 30;
+	} else {
+		if ((d + 7) > 31) m++;
+		d = (d + 7) % 31;
+		if (m == 13) {
+			m = 1;
+			y++;
+		}
+	}
+
+	day = std::to_string(d);
+	if (d < 10) day = "0" + day;
+
+	month = std::to_string(m);
+	if (m < 10) month = "0" + month;
+
+	year = std::to_string(y);
+	std::string date = year + month + day;
+
+	return std::stoi(date);
 }

@@ -32,7 +32,12 @@ bool greater_quantity(const Item& item, double quantity);
 bool lesser_price(const Item& item, double price);
 bool lesser_quantity(const Item& item, double quantity);
 
-bool is_valid_date(int d, int m, int y);
+bool is_valid_date(int d, int m, int, std::string curr_date);
+bool current_date_valid(int d, int m, int y, std::string curr_date);
 bool is_leap(int y);
+
+int number_of_days(int m, int y);
+int week_increase(int d, int m, int y);
+
 
 } // namespace util

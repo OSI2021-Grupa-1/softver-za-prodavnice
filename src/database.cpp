@@ -136,11 +136,11 @@ bool Database::check_item_availability(const std::string& other_barcode, const d
 }
 
 std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date,
-										  const int& end_date, std::string& path) {
+										  const int& end_date) {
 	std::vector<Item> report{};
 	std::string barcode, name, price, quantity, day, month, year;
 	int position, date;
-	if (auto file = std::ifstream(path)) {
+	if (auto file = std::ifstream(paths.get_path("prodani_artikli"))) {  // <<<<<<<<<<<<<<<<<<<< OVDJE TREBA DEFINISATI FAJL
 		do {
 			std::getline(file, barcode, '#');
 			std::getline(file, name, '#');
