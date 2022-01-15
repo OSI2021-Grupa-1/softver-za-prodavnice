@@ -8,6 +8,26 @@
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/util.hpp"
 
+using namespace ftxui;
+
+namespace {
+ftxui::Color purple = {93, 39, 93};
+ftxui::Color red = {177, 62, 83};
+ftxui::Color orange = {239, 125, 87};
+ftxui::Color yellow = {255, 205, 117};
+ftxui::Color bright_green = {167, 240, 112};
+ftxui::Color dark_green = {56, 183, 100};
+ftxui::Color teal = {37, 113, 121};
+ftxui::Color dark_blue = {41, 54, 111};
+ftxui::Color blue = {59, 93, 201};
+ftxui::Color light_blue = {65, 166, 246};
+ftxui::Color cyan = {115, 239, 247};
+ftxui::Color white = {244, 244, 244};
+ftxui::Color light_gray = {148, 176, 194};
+ftxui::Color gray = {86, 108, 134};
+ftxui::Color dark_gray = {51, 60, 87};
+} // namespace
+
 void tui::login_interface(Database& db) {
 	using namespace ftxui;
 	std::string name{};
@@ -26,7 +46,7 @@ void tui::login_interface(Database& db) {
 	ftxui::Component password_input = ftxui::Input(&password, "lozinka", password_option);
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
-
+	auto quit_app = screen.ExitLoopClosure();
 	auto log_in_button = ftxui::Button("PRIJAVI SE", [&] {
 		if (db.find_user(correct_name) >= 0) {
 			if (db.is_password_correct(correct_name, correct_password)) {
@@ -38,7 +58,7 @@ void tui::login_interface(Database& db) {
 				User current_user = db.get_user_data()[db.find_user(correct_name)];
 				db.set_current_user(current_user);
 				db.set_user_data(temp_usr_data);
-				db.write_users_to_file(db.get_pahts().get_path(
+				db.write_users_to_file(db.get_paths().get_path(
 					"korisnici")); // ne radi, ali potrebno sacekati da se implementuje ispravno
 								   // citanje podataka iz fajlova
 
@@ -56,11 +76,7 @@ void tui::login_interface(Database& db) {
 		}
 	});
 	// Exit ne radi za linux, samo zaledi terminal
-	auto exit_button = ftxui::Button("IZLAZ", [&] {
-		screen.ExitLoopClosure();
-
-		abort();
-	});
+	auto exit_button = ftxui::Button("IZLAZ", [&] { exit(0); });
 
 	auto component =
 		ftxui::Container::Vertical({name_input, password_input, log_in_button, exit_button});
@@ -125,7 +141,7 @@ void tui::change_password(Database& db, User& user, bool quitable,
 				db.change_password(user.get_username(), entered_password);
 				db.reset_attempts(user.get_username());
 
-				db.write_users_to_file(db.get_pahts().get_path("korisnici"));
+				db.write_users_to_file(db.get_paths().get_path("korisnici"));
 
 				if (db.get_current_user().get_position() == "sef") {
 					supervisor_interface(db);
@@ -477,7 +493,7 @@ void tui::employee_overview(Database& db) {
 			// states[i].checked = false;
 			items->Add(Checkbox(user_data[i].get_username(), &states[i].checked));
 		}
-		if (selected_users.size()) {
+		if (selected_users.size() == 1) {
 			password_editable = true;
 		} else {
 			password_editable = false;
@@ -537,7 +553,7 @@ void tui::create_employee_interface(Database& db) {
 			removal.push_back(temp[pos]);
 			db.delete_users(removal);
 		}
-		db.write_users_to_file(db.get_pahts().get_path("korisnici"));
+		db.write_users_to_file(db.get_paths().get_path("korisnici"));
 		employee_overview(db);
 	});
 	bool valid_account = false;
@@ -620,7 +636,7 @@ void tui::items_overview(Database& db) {
 				item.set_quantity(new_quantity);
 			}
 		}
-		db.write_items_to_file(db.get_pahts().get_path("artikli_na_stanju"));
+		db.write_items_to_file(db.get_paths().get_path("artikli_na_stanju"));
 	});
 	auto filter_button = ftxui::Button("primijeni", [&] {
 		double comparator{};
@@ -779,7 +795,7 @@ void tui::create_item_interface(Database& db) {
 		} catch (const std::invalid_argument) {
 			depth = 1; // pogresan unos cijene ili kolicine (sadrzi slovo)
 			cont = false;
-		} 
+		}
 		if (cont) {
 			if (barcode.length() != 8) depth = 2; // duzina barkoda se razlikuje od 8
 			else if (barcode_exists)
@@ -790,38 +806,40 @@ void tui::create_item_interface(Database& db) {
 				temp.push_back(new_item);
 
 				db.set_item_data(temp);
-				db.write_items_to_file(db.get_pahts().get_path("artikli_na_stanju"));
+				db.write_items_to_file(db.get_paths().get_path("artikli_na_stanju"));
 				items_overview(db);
 			}
 		}
-									});
+	});
 
 	auto component = Container::Vertical(
 		{name_input, barcode_input, price_input, quantity_input, cancel_button, create_button});
 
 	auto depth_0_renderer = Renderer(component, [&] {
-									
-		return vbox({vbox({center(hbox(ftxui::text("Naziv artikla: "), name_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
-							   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
-				center(hbox(ftxui::text("Sifra artikla: "), barcode_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
-							   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
-				center(hbox(ftxui::text("Cijena artikla: "), price_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
-							   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
-				center(hbox(ftxui::text("Kolicina artikla: "), quantity_input->Render()) |
+		return vbox(
+			{vbox({center(hbox(ftxui::text("Naziv artikla: "), name_input->Render()) |
 						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
-					   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
-				hbox({center(create_button->Render()) | size(WIDTH, EQUAL, 100) |
-						  ftxui::color(bright_green),
-					  center(cancel_button->Render()) | size(WIDTH, EQUAL, 100) |
-						  ftxui::color(red)}) |
-					borderRounded
-				 }) | border | size(WIDTH, EQUAL, 150) | center
-		});
+					   size(HEIGHT, EQUAL, 3) | vcenter,
+				   separatorDouble(),
+				   center(hbox(ftxui::text("Sifra artikla: "), barcode_input->Render()) |
+						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+					   size(HEIGHT, EQUAL, 3) | vcenter,
+				   separatorDouble(),
+				   center(hbox(ftxui::text("Cijena artikla: "), price_input->Render()) |
+						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+					   size(HEIGHT, EQUAL, 3) | vcenter,
+				   separatorDouble(),
+				   center(hbox(ftxui::text("Kolicina artikla: "), quantity_input->Render()) |
+						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+					   size(HEIGHT, EQUAL, 3) | vcenter,
+				   separatorDouble(),
+				   hbox({center(create_button->Render()) | size(WIDTH, EQUAL, 100) |
+							 ftxui::color(bright_green),
+						 center(cancel_button->Render()) | size(WIDTH, EQUAL, 100) |
+							 ftxui::color(red)}) |
+					   borderRounded}) |
+			 border | size(WIDTH, EQUAL, 150) | center});
 	});
-
 
 	auto on_agree = [&]() { depth = 0; };
 
@@ -875,7 +893,7 @@ void tui::create_item_interface(Database& db) {
 				document,
 				depth_3_renderer->Render() | clear_under | center,
 			});
-		} 
+		}
 		return document;
 	});
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();

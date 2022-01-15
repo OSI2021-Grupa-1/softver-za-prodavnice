@@ -27,7 +27,7 @@ class Database {
 
 	void set_current_user(User user) { current_user = std::move(user); }
 	User get_current_user() const { return current_user; }
-	Config get_pahts() const { return paths; }
+	Config get_paths() const { return paths; }
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);
 
