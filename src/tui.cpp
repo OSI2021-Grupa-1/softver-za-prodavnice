@@ -1,4 +1,11 @@
 #include "softver-za-prodavnice/tui.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include "ftxui/component/component.hpp"
+#include "ftxui/dom/elements.hpp"
+#include "softver-za-prodavnice/item.hpp"
+#include "softver-za-prodavnice/util.hpp"
 
 void tui::login_interface(Database& db) {
 	using namespace ftxui;
@@ -231,7 +238,6 @@ void tui::selling_items_interface(Database& db) {
 	auto list = db.items_table();
 	auto items_copy = db.get_item_data();
 
-
 	for (int i = 0; i < db.get_item_data().size(); ++i) {
 		std::stringstream str;
 		str << "  " << std::left << std::setw(8) << list[i][0] << std::setw(21) << list[i][1]
@@ -247,14 +253,14 @@ void tui::selling_items_interface(Database& db) {
 	double d_quantity = 0;
 	std::vector<std::pair<Item, double>> sold_items;
 
-	int depth = 0; //1 za nema na stanju, 2 za neispravan unos kolicine
+	int depth = 0; // 1 za nema na stanju, 2 za neispravan unos kolicine
 
 	auto add_item_button = Button("DODAJ ARTIKAL NA RACUN", [&] {
 		bool item_available = false;
 		try {
 			d_quantity = std::stod(quantity);
 			item_available = db.check_item_availability(list[selected][0], d_quantity);
-		} catch (const std::length_error& exc){
+		} catch (const std::length_error& exc) {
 			depth = 1;
 		} catch (const std::invalid_argument& exc) {
 			depth = 2;
@@ -294,43 +300,40 @@ void tui::selling_items_interface(Database& db) {
 	});
 	auto cancel_button = ftxui::Button("ODUSTANI", [&] { employee_interface(db); });
 
-
-
-	auto depth_0_container = Container::Vertical({radiobox, quantity_input, add_item_button, generate_receipt_button,
-							 cancel_button});
+	auto depth_0_container = Container::Vertical(
+		{radiobox, quantity_input, add_item_button, generate_receipt_button, cancel_button});
 
 	auto depth_0_renderer = Renderer(depth_0_container, [&] {
-		//std::string inp;
-		//for (int i = 0; i < sold_items.size(); i++) {
+		// std::string inp;
+		// for (int i = 0; i < sold_items.size(); i++) {
 		//	auto item = sold_items[i];
 		//	std::stringstream str;
 		//	str << " " << std::left << std::setw(8) << item.first.get_barcode() << std::setw(21)
 		//		<< item.first.get_name() << std::setw(9) << item.first.get_price() << std::setw(6)
 		//		<< item.second << '\n';
 		//	inp += str.str();
-		//}
+		// }
 		return ftxui::vbox({
-			hbox(center(text(db.get_current_user().get_username()))), separator(),
-				// 0123456789012345678901234567890123456
-				hbox(center(text("     SIFRA   ARTIKAL              CIJENA"))),
-				radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) |
-					border,
-				center(hbox(ftxui::text(" Kolicina artikla:  ") | size(WIDTH, LESS_THAN, 20),
-							quantity_input->Render() | ftxui::color(light_gray))) |
-					ftxui::borderRounded | vcenter | size(WIDTH, EQUAL, 50),
-				center(hbox(center(add_item_button->Render()))),
-				center(hbox(center(generate_receipt_button->Render()))),
-				center(hbox(center(cancel_button->Render()))),
+				   hbox(center(text(db.get_current_user().get_username()))),
+				   separator(),
+				   // 0123456789012345678901234567890123456
+				   hbox(center(text("     SIFRA   ARTIKAL              CIJENA"))),
+				   radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) |
+					   border,
+				   center(hbox(ftxui::text(" Kolicina artikla:  ") | size(WIDTH, LESS_THAN, 20),
+							   quantity_input->Render() | ftxui::color(light_gray))) |
+					   ftxui::borderRounded | vcenter | size(WIDTH, EQUAL, 50),
+				   center(hbox(center(add_item_button->Render()))),
+				   center(hbox(center(generate_receipt_button->Render()))),
+				   center(hbox(center(cancel_button->Render()))),
 
-				}) | center | borderHeavy;
+			   }) |
+			   center | borderHeavy;
 	});
 
+	auto on_agree = [&]() { depth = 0; };
 
-	auto on_agree = [&]() {
-		depth = 0;
-	};
-
-	auto depth_1_container = Container::Horizontal({ Button("U REDU", [&]{on_agree();})});
+	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 	auto depth_2_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 	auto depth_3_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 
@@ -359,14 +362,8 @@ void tui::selling_items_interface(Database& db) {
 			   border;
 	});
 
-	  auto main_container = Container::Tab(
-		{
-			depth_0_renderer,
-			depth_1_renderer,
-			depth_2_renderer, 
-			depth_3_renderer
-		},
-		&depth);
+	auto main_container = Container::Tab(
+		{depth_0_renderer, depth_1_renderer, depth_2_renderer, depth_3_renderer}, &depth);
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = depth_0_renderer->Render();
 
@@ -409,7 +406,7 @@ void tui::employee_overview(Database& db) {
 	auto delete_button = ftxui::Button("IZBRISI NALOGE", [&] {
 		db.delete_users(selected_users);
 		auto it = std::find(selected_users.begin(), selected_users.end(), db.get_current_user());
-		if (it != selected_users.begin()) {
+		if (it == selected_users.begin()) {
 			login_interface(db);
 		}
 	});
@@ -497,7 +494,7 @@ void tui::create_employee_interface(Database& db) {
 	auto cancel_button = ftxui::Button("ODUSTANI", [&] { employee_overview(db); });
 	auto confirm_button = ftxui::Button("SACUVAJ", [&] {
 		std::vector<User> temp = db.get_user_data();
-		std::string position = (selected == 0) ? "Radnik" : "Sef";
+		std::string position = (selected == 0) ? "radnik" : "sef";
 		temp.push_back({correct_name, correct_password, position, 0});
 		db.set_user_data(temp);
 		db.write_users_to_file(db.get_pahts().get_path("korisnici"));
@@ -544,4 +541,172 @@ void tui::create_employee_interface(Database& db) {
 }
 
 void tui::report_interface(Database& db) {}
-void tui::items_overview(Database& db) {}
+
+void tui::items_overview(Database& db) {
+	struct CheckboxState {
+		bool checked;
+	};
+
+	std::string quantity{};
+	double new_quantity{};
+
+	std::vector<Item> selected_items{};
+	std::vector<Item> item_data = db.get_item_data();
+
+	std::vector<Item> filter_items{};
+	std::vector<Item> items_for_display = item_data;
+
+	size_t number_of_items = items_for_display.size();
+
+	// filter
+	std::vector<std::string> filter_options = {"sve", "kolicina veca", "kolicina manja",
+											   "cijena veca", "cijena manja"};
+	std::string filter_value{}; // posto je string, morace se konvertovati u int kasnije
+	ftxui::Component value_input = ftxui::Input(&filter_value, "filter vrijednost");
+	ftxui::Component quantity_input = ftxui::Input(&quantity, "nova kolicina");
+
+	int selected = 0;
+	int last_selected = 0;
+	auto item_filter = Radiobox(&filter_options, &selected);
+	auto message = ftxui::text("Filter:");
+
+	bool item_editable = false;
+	auto create_button = ftxui::Button("NOVI ARTIKAL", [&] { create_item_interface(db); });
+	auto edit_button = ftxui::Button("IZMJENI KOLICINU", [&] {
+		db.change_quantity(std::move(selected_items[0].get_barcode()), new_quantity);
+		for (auto& item : items_for_display) {
+			if (item.get_barcode() == selected_items[0].get_barcode()) {
+				item.set_quantity(new_quantity);
+			}
+		}
+		db.write_items_to_file(db.get_pahts().get_path("artikli_na_stanju"));
+	});
+	auto filter_button = ftxui::Button("primjeni", [&] {
+		double comparator{};
+		if (filter_value == "") {
+			comparator = 0;
+		} else if (std::ranges::all_of(filter_value.begin(), filter_value.end(),
+									   [](char c) { return isdigit(c) != 0; }) &&
+				   std::stod(filter_value) > -1) {
+			comparator = std::stod(filter_value);
+		}
+		switch (selected) {
+		case 0: items_for_display = db.get_item_data(); break;
+		case 1: items_for_display = db.filter(util::greater_quantity, comparator); break;
+		case 2: items_for_display = db.filter(util::lesser_quantity, comparator); break;
+		case 3: items_for_display = db.filter(util::greater_price, comparator); break;
+		case 4: items_for_display = db.filter(util::lesser_price, comparator); break;
+		}
+		last_selected = selected;
+	});
+
+	auto delete_button = ftxui::Button("IZBRISI ARTIKLE", [&] {
+		db.delete_items(selected_items);
+		for (auto item : selected_items) {
+			auto it = std::find(items_for_display.begin(), items_for_display.end(), item);
+			if (it != items_for_display.end()) {
+				items_for_display.erase(it);
+			}
+		}
+	});
+	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
+
+	std::vector<CheckboxState> states(number_of_items);
+	auto items = Container::Vertical({});
+
+	// legenda
+	std::stringstream title_stream;
+	title_stream << "  " << std::left << std::setw(8) << " sifra " << std::setw(21) << " naziv "
+				 << std::setw(6) << " cijena " << std::setw(6) << " kolicina ";
+	auto legend = ftxui::text(title_stream.str());
+
+	for (int i = 0; i < number_of_items; ++i) {
+		states[i].checked = false;
+		std::stringstream ss;
+		ss << "  " << std::left << std::setw(8) << items_for_display[i].get_barcode()
+		   << std::setw(21) << items_for_display[i].get_name() << std::setw(6)
+		   << items_for_display[i].get_price() << std::setw(6)
+		   << items_for_display[i].get_quantity();
+		std::string display_string = ss.str();
+		items->Add(Checkbox(display_string, &states[i].checked));
+	}
+
+	auto filter = Container::Vertical({item_filter, value_input});
+	auto components = Container::Vertical({create_button, delete_button, back_button, items, filter,
+										   filter_button, Maybe(edit_button, &item_editable),
+										   Maybe(quantity_input, &item_editable)});
+
+	auto renderer = Renderer(components, [&] {
+		// osvjezava se kolekcija izabranih artikala
+		number_of_items = items_for_display.size();
+		for (size_t i = 0; i < number_of_items; ++i) {
+			auto it = std::find(selected_items.begin(), selected_items.end(), items_for_display[i]);
+			if (states[i].checked) {
+				if (it == selected_items.end()) {
+					selected_items.push_back(items_for_display[i]);
+				}
+			} else {
+				if (it != selected_items.end()) {
+					selected_items.erase(it);
+				}
+			}
+		}
+
+		// ponovo se popunjava spisak za prikaz
+		items->DetachAllChildren();
+		for (int i = 0; i < number_of_items; ++i) {
+			std::stringstream ss;
+			ss << "  " << std::left << std::setw(8) << items_for_display[i].get_barcode()
+			   << std::setw(21) << items_for_display[i].get_name() << std::setw(6)
+			   << items_for_display[i].get_price() << std::setw(6)
+			   << items_for_display[i].get_quantity();
+			std::string display_string = ss.str();
+			items->Add(Checkbox(display_string, &states[i].checked));
+		}
+
+		// moguce je mijenjati kolicinu samo jednog artikla
+		if (selected_items.size() == 1) {
+			item_editable = true;
+		} else {
+			item_editable = false;
+		}
+
+		if (item_editable) {
+			if (quantity == "") {
+				new_quantity = 0;
+			} else if (std::ranges::all_of(quantity.begin(), quantity.end(),
+										   [](char c) { return isdigit(c) != 0; }) &&
+					   std::stod(quantity) > -1) {
+				new_quantity = std::stod(quantity);
+			}
+		}
+
+		return ftxui::vbox(
+			{center(bold(text("SPISAK ARTIKALA"))), separator(),
+			 ftxui::hbox(
+				 {ftxui::vbox({
+					  legend,
+					  ftxui::separatorHeavy(),
+					  items->Render() | vscroll_indicator | frame | border,
+				  }),
+				  ftxui::vbox({center(bold(text("Filter: "))), separator(), filter->Render(),
+							   filter_button->Render() | ftxui::size(HEIGHT, EQUAL, 3)}) |
+					  border}),
+
+			 vbox({center(create_button->Render()) | ftxui::color(blue),
+				   center(delete_button->Render()) | ftxui::color(blue),
+				   center(
+					   ftxui::hbox({center(edit_button->Render()) | ftxui::color(blue),
+									center(bold(text("  "))), center(quantity_input->Render())}) |
+					   border),
+				   center(back_button->Render()) | ftxui::color(red)
+
+			 }) | border});
+	});
+
+	auto screen = ScreenInteractive::TerminalOutput();
+
+	screen.Loop(renderer);
+}
+
+void tui::create_item_interface(Database& db) {}

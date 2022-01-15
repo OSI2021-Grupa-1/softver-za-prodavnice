@@ -1,13 +1,12 @@
 #pragma once
 #pragma warning(disable : 4996) // zbog localtime(u current_date_time funkciji), moze biti nesigurno
+#include <algorithm>
 #include <functional>
 #include <iomanip>
 #include <ostream>
+#include <sstream>
 #include <vector>
 #include <time.h>
-#include <iomanip>
-#include <sstream>
-#include <algorithm>
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/user.hpp"
@@ -66,10 +65,8 @@ class Database {
 	Item find_item_by_barcode(const std::string& id) const;
 	std::vector<std::vector<std::string>> items_table();
 	void update_quantity_by_id(std::vector<Item>& copy, std::string id, double quantity);
+	void change_quantity(std::string id, double const quantity);
 
 	const std::string current_date_time();
 	bool backup();
-
-  private: // za lokalne metode
-	const std::string current_date_time();
 };

@@ -124,34 +124,13 @@ void Database::update_items(std::vector<std::pair<Item, double>> items) {
 	write_items_to_file(paths.get_path("artikli_na_stanju"));
 }
 
-
-bool Database::greater_price(const Item& item, double price) {
-	if (item.get_price() > price) return true;
-	return false;
-}
-
-bool Database::greater_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() > quantity) return true;
-	return false;
-}
-
-bool Database::lesser_price(const Item& item, double price) {
-	if (item.get_price() < price) return true;
-	return false;
-}
-
-bool Database::lesser_quantity(const Item& item, double quantity) {
-	if (item.get_quantity() < quantity) return true;
-	return false;
-}
-
 bool Database::check_item_availability(const std::string& other_barcode, const double& quantity) {
 
 	int i;
 	for (i = 0; i < item_data.size(); i++) {
 		if (item_data[i].get_barcode() == other_barcode) break;
 	}
-	if (i == item_data.size()) return false; //ne bi trebalo nikad
+	if (i == item_data.size()) return false; // ne bi trebalo nikad
 	if (item_data[i].get_quantity() < quantity) throw std::length_error("Not enough quantity");
 	return true;
 }
@@ -172,6 +151,7 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 			std::getline(file, year);
 
 			date = stoi(year + month + day);
+			// std::cout << date << std::endl;
 
 			if (date >= start_date && date <= end_date) {
 				if (search_item_in_vector(items, barcode) !=
@@ -187,11 +167,11 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 					}
 				}
 			}
-		} while (date <= end_date);
+		} while (date <= end_date && file.eof() != 0);
 		file.close();
+		return report;
 	} else
 		throw std::invalid_argument("File couldn't be opened");
-	return report;
 }
 
 int Database::search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode) {
@@ -222,8 +202,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		file << util::helper(width, "bilo sta") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << date << '\n';
-		file << std::left << "Blagajnik: "
-			 << current_user.get_username() << '\n';
+		file << std::left << "Blagajnik: " << current_user.get_username() << '\n';
 		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
 		// ta staticka promjenljiva bi se morala cuvati u fajlu
 		file << "\n";
@@ -305,13 +284,13 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	tmp_file.close(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
 };
 
-//koristi se kad je vec provjereno da item postoji
+// koristi se kad je vec provjereno da item postoji
 Item Database::find_item_by_barcode(const std::string& id) const {
 	for (auto item : item_data)
 		if (item.get_barcode() == id) return item;
 
+	return {};
 }
-
 
 std::vector<std::vector<std::string>> Database::items_table() {
 	std::vector<Item> items_f = item_data;
@@ -321,10 +300,10 @@ std::vector<std::vector<std::string>> Database::items_table() {
 	std::sort(items_f.begin(), items_f.end(), [](Item& i1, Item& i2) {
 		if (i1.get_name() < i2.get_name()) return true;
 		return false;
-			  });
+	});
 
 	for (size_t i = 0; i < items_f.size(); i++) {
-		//konvertovanje u dvije decimale
+		// konvertovanje u dvije decimale
 		std::stringstream stream;
 		stream << std::fixed << std::setprecision(2) << items_f[i].get_price();
 		std::string price = stream.str();
@@ -338,12 +317,17 @@ std::vector<std::vector<std::string>> Database::items_table() {
 }
 
 void Database::update_quantity_by_id(std::vector<Item>& copy, std::string id, double quantity) {
-	for (auto item : copy)
-		if (item.get_barcode() == id)
-			item.set_quantity(item.get_quantity() + quantity);
+	for (auto& item : copy)
+		if (item.get_barcode() == id) item.set_quantity(item.get_quantity() + quantity);
 }
 
-
+void Database::change_quantity(std::string id, double const quantity) {
+	for (auto& item : item_data) {
+		if (item.get_barcode() == id) {
+			item.set_quantity(quantity);
+		}
+	}
+}
 const std::string Database::current_date_time() {
 	time_t now = time(0);
 	struct tm tstruct;

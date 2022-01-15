@@ -1,14 +1,15 @@
 #pragma once
 
+#include <iomanip>
 #include <memory>
+#include <sstream>
 #include "config.hpp"
 #include "database.hpp"
 #include "item.hpp"
 #include "user.hpp"
 #include "util.hpp"
-#include <iomanip>
-#include <sstream>
 
+#include <ftxui/dom/table.hpp>
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_base.hpp"
@@ -21,7 +22,6 @@
 #include "ftxui/screen/screen.hpp"
 #include "ftxui/screen/terminal.hpp"
 #include "ftxui/util/ref.hpp"
-#include <ftxui/dom/table.hpp> 
 
 namespace tui {
 inline ftxui::Color purple = {93, 39, 93};
@@ -52,4 +52,5 @@ void employee_overview(Database& db);
 void create_employee_interface(Database& db);
 void items_overview(Database& db);
 void report_interface(Database& db);
+void create_item_interface(Database& db);
 }; // namespace tui
