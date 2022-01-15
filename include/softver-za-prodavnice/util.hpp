@@ -31,4 +31,8 @@ bool greater_price(const Item& item, double price);
 bool greater_quantity(const Item& item, double quantity);
 bool lesser_price(const Item& item, double price);
 bool lesser_quantity(const Item& item, double quantity);
+
+bool is_valid_date(int d, int m, int y);
+bool is_leap(int y);
+
 } // namespace util

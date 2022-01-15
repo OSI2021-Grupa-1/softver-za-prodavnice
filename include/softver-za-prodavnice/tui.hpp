@@ -52,5 +52,10 @@ void employee_overview(Database& db);
 void create_employee_interface(Database& db);
 void items_overview(Database& db);
 void report_interface(Database& db);
+void daily_report(Database& db);
+void weekly_report(Database& db);
+void monthly_report(Database& db);
+void yearly_report(Database& db);
+void arbitrary_report(Database& db);
 void create_item_interface(Database& db);
 }; // namespace tui

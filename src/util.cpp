@@ -171,3 +171,25 @@ bool util::lesser_quantity(const Item& item, double quantity) {
 	if (item.get_quantity() < quantity) return true;
 	return false;
 }
+
+
+bool util::is_leap(int year) { return (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)); }
+
+bool util::is_valid_date(int d, int m, int y) {
+	const int MAX_VALID_YR = 9999;
+	const int MIN_VALID_YR = 1800;
+
+	if (y > MAX_VALID_YR || y < MIN_VALID_YR) return false;
+	if (m < 1 || m > 12) return false;
+	if (d < 1 || d > 31) return false;
+
+	if (m == 2) {
+		if (is_leap(y)) return (d <= 29);
+		else
+			return (d <= 28);
+	}
+
+	if (m == 4 || m == 6 || m == 9 || m == 11) return (d <= 30);
+
+	return true;
+}
