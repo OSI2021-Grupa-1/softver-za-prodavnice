@@ -1,8 +1,11 @@
 #pragma once
+#include <cstddef>
 #pragma warning(disable : 4996) // zbog localtime(u current_date_time funkciji), moze biti nesigurno
+#include <algorithm>
 #include <functional>
 #include <iomanip>
 #include <ostream>
+#include <sstream>
 #include <vector>
 #include <time.h>
 #include "softver-za-prodavnice/config.hpp"
@@ -24,7 +27,7 @@ class Database {
 
 	void set_current_user(User user) { current_user = std::move(user); }
 	User get_current_user() const { return current_user; }
-	Config get_pahts() const { return paths; }
+	Config get_paths() const { return paths; }
 	void set_user_data(std::vector<User> user_data);
 	void set_item_data(std::vector<Item> item_data);
 
@@ -34,7 +37,9 @@ class Database {
 	void delete_users(const std::vector<User>& users);
 	void delete_items(const std::vector<Item>& items);
 
+	std::size_t number_of_bosses() const;
 	void change_password(const std::string& usr, const std::string& new_pw);
+	void reset_attempts(const std::string& usr);
 	bool is_password_correct(const std::string& usr, const std::string& input) const;
 	bool are_passwords_equal(const std::string& original, const std::string& confirmation) const;
 	bool is_password_valid(std::string& pw) const { return pw.size() >= 8; }
@@ -48,17 +53,23 @@ class Database {
 	std::vector<Item> filter(std::function<bool(const Item&, double)> f, double comparator);
 	std::vector<Item> filter_name(std::string substr);
 
-	bool check_item_availability(const std::string& other_barcode, const int& quantity);
+	void update_items(std::vector<std::pair<Item, double>> items);
+
+	bool check_item_availability(const std::string& other_barcode, const double& quantity);
 
 	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date,
 									const int& end_date, std::string& path);
 	int search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode);
 
-	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, std::string username);
+	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, const std::string& date);
 
 	void write_sold_items_to_file(const std::vector<Item>& items, const std::string& date);
 
-	bool backup();
-  private: // za lokalne metode
+	Item find_item_by_barcode(const std::string& id) const;
+	std::vector<std::vector<std::string>> items_table();
+	void update_quantity_by_id(std::vector<Item>& copy, std::string id, double quantity);
+	void change_quantity(std::string id, double const quantity);
+
 	const std::string current_date_time();
+	bool backup();
 };

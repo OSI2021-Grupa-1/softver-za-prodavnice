@@ -1,9 +1,8 @@
 #include "softver-za-prodavnice/database.hpp"
+#include <filesystem>
 
 Database::Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths)
 	: user_data(std::move(user_data)), item_data(std::move(item_data)), paths(std::move(paths)) {}
-
-
 
 Database::Database(Config& paths) : paths(paths) {
 	std::string users_path = paths.get_path("korisnici");
@@ -35,6 +34,12 @@ void Database::delete_items(const std::vector<Item>& items) {
 	}
 
 	write_items_to_file(paths.get_path("artikli_na_stanju"));
+}
+
+void Database::reset_attempts(const std::string& usr) {
+	auto it = find_user(std::move(usr));
+	user_data[it].reset_num_logins();
+	write_users_to_file(paths.get_path("korisnici"));
 }
 
 void Database::change_password(const std::string& usr, const std::string& new_pw) {
@@ -117,14 +122,22 @@ std::vector<Item> Database::filter_name(std::string substr) {
 	return ret;
 }
 
-bool Database::check_item_availability(const std::string& other_barcode, const int& quantity) {
+void Database::update_items(std::vector<std::pair<Item, double>> items) {
+	for (auto& item : items) {
+		auto it = std::find(item_data.begin(), item_data.end(), item.first);
+		it->set_quantity(it->get_quantity() - item.second);
+	}
+	write_items_to_file(paths.get_path("artikli_na_stanju"));
+}
+
+bool Database::check_item_availability(const std::string& other_barcode, const double& quantity) {
 
 	int i;
 	for (i = 0; i < item_data.size(); i++) {
 		if (item_data[i].get_barcode() == other_barcode) break;
 	}
-	if (i == item_data.size()) return false;
-	if (item_data[i].get_quantity() < quantity) return false;
+	if (i == item_data.size()) return false; // ne bi trebalo nikad
+	if (item_data[i].get_quantity() < quantity) throw std::length_error("Not enough quantity");
 	return true;
 }
 
@@ -144,6 +157,7 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 			std::getline(file, year);
 
 			date = stoi(year + month + day);
+			// std::cout << date << std::endl;
 
 			if (date >= start_date && date <= end_date) {
 				if (search_item_in_vector(items, barcode) !=
@@ -159,11 +173,11 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 					}
 				}
 			}
-		} while (date <= end_date);
+		} while (date <= end_date && file.eof() != 0);
 		file.close();
+		return report;
 	} else
 		throw std::invalid_argument("File couldn't be opened");
-	return report;
 }
 
 int Database::search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode) {
@@ -177,12 +191,11 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 
 // provjera stanja dostupnosti se provjerava prije ove funkcije
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
-								std::string username) {
+								const std::string& date) {
 	// nije jos definisana putanja gdje ce se fajl praviti
 	// std::string path = paths.get_path("");
 
-	std::string current_time = current_date_time();
-	std::string file_name = util::generete_receipt_file_name(current_time);
+	std::string file_name = util::generete_receipt_file_name(date);
 
 	std::fstream file;
 	file.open(file_name, std::ios::out);
@@ -191,12 +204,11 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 		int width = 48;
 		file << std::setw(width) << std::setfill('=') << "\n";
 		file << util::helper(width, "Naziv prodavnice") << "\n";
-		file << util::helper(width, "Naziv prodavnice") << "\n";
-		file << util::helper(width, "Naziv prodavnice") << "\n";
+		file << util::helper(width, "Adresa") << "\n";
+		file << util::helper(width, "bilo sta") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
-		file << std::left << "Datum i vrijeme: " << current_time << '\n';
-		file << std::left << "Blagajnik: "
-			 << "ph" << '\n';
+		file << std::left << "Datum i vrijeme: " << date << '\n';
+		file << std::left << "Blagajnik: " << current_user.get_username() << '\n';
 		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
 		// ta staticka promjenljiva bi se morala cuvati u fajlu
 		file << "\n";
@@ -236,6 +248,18 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 	}
 }
 
+// provjerava da li se u bazi podataka nalazi bar jedan sef
+
+std::size_t Database::number_of_bosses() const {
+	std::size_t ret{};
+	for (auto user : user_data) {
+		if (user.get_position() == "sef") {
+			++ret;
+		}
+	}
+	return ret;
+}
+
 void Database::write_sold_items_to_file(const std::vector<Item>& items, const std::string& date) {
 	std::fstream tmp_file;
 	std::fstream transaction_file;
@@ -245,10 +269,10 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	std::string putanja_do_pravog; // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
 
 	tmp_file.open(putanja_do_pomocnog, std::ios::out);
-	if (!tmp_file.is_open()) throw std::exception();
+	if (!tmp_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file.open(putanja_do_pravog, std::ios::in);
-	if (!transaction_file.is_open()) throw std::exception();
+	if (!transaction_file.is_open()) throw "File couldn't be opened";
 
 	for (size_t i = 0; i < items.size(); i++) {
 		tmp_file << items[i] << "#" << date << std::endl;
@@ -259,10 +283,10 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	transaction_file.close();
 
 	tmp_file.open(putanja_do_pomocnog, std::ios::in);
-	if (!tmp_file.is_open()) throw std::exception();
+	if (!tmp_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file.open(putanja_do_pravog, std::ios::out);
-	if (!transaction_file.is_open()) throw std::exception();
+	if (!transaction_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file << tmp_file.rdbuf();
 
@@ -273,11 +297,55 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 		putanja_do_pomocnog,
 		std::ios::out); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
 	if (!tmp_file.is_open())
-		throw std::exception(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili
-								// resurse
+		throw "Fajl nije otvoren"; // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi
+								   // trosili resurse
 	tmp_file.close(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
 };
 
+// koristi se kad je vec provjereno da item postoji
+Item Database::find_item_by_barcode(const std::string& id) const {
+	for (auto item : item_data)
+		if (item.get_barcode() == id) return item;
+
+	return {};
+}
+
+std::vector<std::vector<std::string>> Database::items_table() {
+	std::vector<Item> items_f = item_data;
+	std::vector<std::vector<std::string>> result;
+	result.resize(items_f.size());
+
+	std::sort(items_f.begin(), items_f.end(), [](Item& i1, Item& i2) {
+		if (i1.get_name() < i2.get_name()) return true;
+		return false;
+	});
+
+	for (size_t i = 0; i < items_f.size(); i++) {
+		// konvertovanje u dvije decimale
+		std::stringstream stream;
+		stream << std::fixed << std::setprecision(2) << items_f[i].get_price();
+		std::string price = stream.str();
+
+		result[i].push_back(items_f[i].get_barcode());
+		result[i].push_back(items_f[i].get_name());
+		result[i].push_back(price);
+	}
+
+	return result;
+}
+
+void Database::update_quantity_by_id(std::vector<Item>& copy, std::string id, double quantity) {
+	for (auto& item : copy)
+		if (item.get_barcode() == id) item.set_quantity(item.get_quantity() + quantity);
+}
+
+void Database::change_quantity(std::string id, double const quantity) {
+	for (auto& item : item_data) {
+		if (item.get_barcode() == id) {
+			item.set_quantity(quantity);
+		}
+	}
+}
 const std::string Database::current_date_time() {
 	time_t now = time(0);
 	struct tm tstruct;
@@ -290,12 +358,17 @@ const std::string Database::current_date_time() {
 
 bool Database::backup() {
 	std::string temp_time_date = current_date_time();
-	std::filesystem::current_path(paths.get_prefix() / "backup");
+
+	std::filesystem::current_path(paths.get_prefix());
+	if (!std::filesystem::exists(paths.get_prefix() / "backup")) {
+		std::filesystem::create_directories(paths.get_prefix() / "backup");
+	}
+
 	std::string time_data = temp_time_date.substr(0, 11);
-	auto success = std::filesystem::create_directory(time_data);
+	auto success = std::filesystem::create_directory(paths.get_prefix() / "backup" / time_data);
 	if (success) {
 		std::filesystem::copy(paths.get_path("korisnici"),
-							  paths.get_prefix() / "backup" / time_data);
+							  paths.get_prefix() / "backup" / time_data / "korisnici.txt");
 		std::filesystem::copy(paths.get_path("artikli_na_stanju"),
 							  paths.get_prefix() / "backup" / time_data);
 		return true;

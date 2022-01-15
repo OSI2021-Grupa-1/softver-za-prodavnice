@@ -7,8 +7,8 @@
 #include <string>
 #include <string_view>
 #include <vector>
-#include "softver-za-prodavnice/user.hpp"
 #include "softver-za-prodavnice/item.hpp"
+#include "softver-za-prodavnice/user.hpp"
 
 namespace util {
 std::vector<std::string> get_lines(const std::string& path);

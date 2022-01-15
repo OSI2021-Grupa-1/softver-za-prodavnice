@@ -29,9 +29,10 @@ class User {
 	std::string get_position() const;
 	std::size_t get_number_of_logins() const;
 	void increase_num_logins() { ++number_of_logins; }
+	void reset_num_logins() { number_of_logins = 0; }
 
 	void set_password(const std::string& pw);
 	friend std::ostream& operator<<(std::ostream& os, const User& user);
 
-	User& create_account(std::string username, std::string password, std::string position);
+	User create_account(std::string username, std::string password, std::string position);
 };
