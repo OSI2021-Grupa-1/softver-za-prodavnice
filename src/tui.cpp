@@ -751,4 +751,134 @@ void tui::items_overview(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::create_item_interface(Database& db) {}
+void tui::create_item_interface(Database& db) {
+
+	std::string name;
+	Component name_input = Input(&name, "     ");
+	std::string barcode;
+	Component barcode_input = Input(&barcode, "     ");
+	std::string price;
+	Component price_input = Input(&price, "     ");
+	std::string quantity;
+	Component quantity_input = Input(&quantity, "     ");
+
+	double d_price;
+	double d_quantity;
+
+	auto cancel_button = Button("ODUSTANI", [&] { items_overview(db); });
+
+	int depth = 0;
+
+	auto create_button = Button("KREIRAJ ARTIKAL", [&] {
+		bool barcode_exists = false;
+		bool cont = true;
+		try {
+			d_quantity = std::stod(quantity);
+			d_price = std::stod(price);
+			barcode_exists = db.is_contained(barcode);
+		} catch (const std::invalid_argument) {
+			depth = 1; // pogresan unos cijene ili kolicine (sadrzi slovo)
+			cont = false;
+		} 
+		if (cont) {
+			if (barcode.length() != 8) depth = 2; // duzina barkoda se razlikuje od 8
+			else if (barcode_exists)
+				depth = 3; // barkod vec postoji
+			else {
+				std::vector<Item> temp = db.get_item_data();
+				Item new_item(barcode, name, d_price, d_quantity);
+				temp.push_back(new_item);
+
+				db.set_item_data(temp);
+				db.write_items_to_file(db.get_pahts().get_path("artikli_na_stanju"));
+				items_overview(db);
+			}
+		}
+									});
+
+	auto component = Container::Vertical(
+		{name_input, barcode_input, price_input, quantity_input, cancel_button, create_button});
+
+	auto depth_0_renderer = Renderer(component, [&] {
+									
+		return vbox({vbox({center(hbox(ftxui::text("Naziv artikla: "), name_input->Render()) |
+								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+							   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
+				center(hbox(ftxui::text("Sifra artikla: "), barcode_input->Render()) |
+								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+							   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
+				center(hbox(ftxui::text("Cijena artikla: "), price_input->Render()) |
+								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+							   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
+				center(hbox(ftxui::text("Kolicina artikla: "), quantity_input->Render()) |
+						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+					   size(HEIGHT, EQUAL, 3) | vcenter, separatorDouble(),
+				hbox({center(create_button->Render()) | size(WIDTH, EQUAL, 100) |
+						  ftxui::color(bright_green),
+					  center(cancel_button->Render()) | size(WIDTH, EQUAL, 100) |
+						  ftxui::color(red)}) |
+					borderRounded
+				 }) | border | size(WIDTH, EQUAL, 150) | center
+		});
+	});
+
+
+	auto on_agree = [&]() { depth = 0; };
+
+	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+	auto depth_2_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+	auto depth_3_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+
+	auto depth_1_renderer = Renderer(depth_1_container, [&] {
+		return vbox({
+				   text("Nepravilan unos cijene ili kolicine"),
+				   separator(),
+				   center(hbox(depth_1_container->Render())),
+			   }) |
+			   border;
+	});
+	auto depth_2_renderer = Renderer(depth_2_container, [&] {
+		return vbox({
+				   text("Sifra artikla mora da sadrzi 8 karaktera"),
+				   separator(),
+				   center(hbox(depth_2_container->Render())),
+			   }) |
+			   border;
+	});
+	auto depth_3_renderer = Renderer(depth_3_container, [&] {
+		return vbox({
+				   text("Sifra artikla vec postoji"),
+				   separator(),
+				   center(hbox(depth_3_container->Render())),
+			   }) |
+			   border;
+	});
+
+	auto main_container = Container::Tab(
+		{depth_0_renderer, depth_1_renderer, depth_2_renderer, depth_3_renderer}, &depth);
+
+	auto main_renderer = Renderer(main_container, [&] {
+		Element document = depth_0_renderer->Render();
+
+		if (depth == 1) {
+			document = dbox({
+				document,
+				depth_1_renderer->Render() | clear_under | center,
+			});
+		} else if (depth == 2) {
+			document = dbox({
+				document,
+				depth_2_renderer->Render() | clear_under | center,
+			});
+		} else if (depth == 3) {
+			document = dbox({
+				document,
+				depth_3_renderer->Render() | clear_under | center,
+			});
+		} 
+		return document;
+	});
+	auto screen = ftxui::ScreenInteractive::TerminalOutput();
+
+	screen.Loop(main_renderer);
+}
