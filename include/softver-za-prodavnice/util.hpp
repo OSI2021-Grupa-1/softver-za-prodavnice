@@ -39,6 +39,8 @@ bool is_leap(int y);
 
 int number_of_days(int m, int y);
 int week_increase(int d, int m, int y);
+bool compare_date(int d, int m, int y, int d1, int m1, int y1);
+
 
 std::string int_date_to_string(const int& date);
 } // namespace util

@@ -150,8 +150,7 @@ void tui::report_interface(Database& db) {
 						 vcenter}) |
 					   hcenter
 
-			 }) |
-			 border | size(WIDTH, EQUAL, 150) | vcenter | hcenter});
+			 }) | border | size(WIDTH, EQUAL, 150) | vcenter | hcenter});
 	});
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
@@ -159,7 +158,6 @@ void tui::report_interface(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {}
 
 void tui::daily_report(Database& db, const std::vector<Item>& items) {
 	std::string day;

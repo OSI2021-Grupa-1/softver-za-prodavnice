@@ -295,3 +295,28 @@ std::string util::int_date_to_string(const int& date) {
 	ret.insert(7, ".");
 	return ret;
 }
+
+bool util::compare_date(int d, int m, int y, int d1, int m1, int y1) {
+	std::string day = std::to_string(d);
+	if (d < 10) day = "0" + day;
+
+	std::string month = std::to_string(m);
+	if (m < 10) month = "0" + month;
+
+	std::string year = std::to_string(y);
+
+	int first_date = stoi(year + month + day);
+
+	day = std::to_string(d1);
+	if (d1 < 10) day = "0" + day;
+
+	month = std::to_string(m1);
+	if (m1 < 10) month = "0" + month;
+
+	year = std::to_string(y1);
+
+	int seccond_date = stoi(year + month + day);
+
+	if (first_date <= seccond_date) return true;
+	return false;
+}
