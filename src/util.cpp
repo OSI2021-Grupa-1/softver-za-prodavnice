@@ -89,12 +89,26 @@ std::filesystem::path util::get_data_path(std::filesystem::path start) {
 	return {};
 }
 
-std::string util::encrypt_decrypt(std::string pw) {
-	char key = 'x';
-	std::string to_process = pw;
-	for (int i = 0; i < pw.size(); i++) to_process[i] = to_process[i] + ' ';
+std::string util::encrypt(std::string ret) {
+	for (std::size_t i = 0; i < ret.length(); ++i) {
+		if (ret[i] == 'x' || ret[i] == 'y' || ret[i] == 'z') ret[i] -= 23;
+		else if (ret[i] == ' ')
+			ret[i] = ret[i];
+		else
+			ret[i] += 3;
+	}
+	return ret;
+}
 
-	return to_process;
+std::string util::decrypt(std::string ret) {
+	for (std::size_t i = 0; i < ret.length(); ++i) {
+		if (ret[i] == 'a' || ret[i] == 'b' || ret[i] == 'c') ret[i] += 23;
+		else if (ret[i] == ' ')
+			ret[i] = ret[i];
+		else
+			ret[i] -= 3;
+	}
+	return ret;
 }
 
 std::vector<User> util::read_users_from_file(const std::string path) {
@@ -121,7 +135,7 @@ User util::parse_user(const std::string& line) {
 	divider = temp_line2.find('#');
 	data.push_back(temp_line2.substr(0, divider));
 	data.push_back(temp_line2.substr(divider + 1));
-	User ret(data[0], encrypt_decrypt(data[3]), data[2], std::stoi(data[1]));
+	User ret(data[0], decrypt(data[3]), data[2], std::stoi(data[1]));
 	return ret;
 }
 
