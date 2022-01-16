@@ -64,10 +64,10 @@ std::string util::generete_receipt_file_name(std::string current_date_time) {
 	return file_name;
 }
 
-std::string util::helper(int width, const std::string& str) {
+std::string util::format_string(int width, const std::string& str) {
 	int len = str.length();
 	if (width < len - 2) {
-		return " " + str.substr(0, 45) + "\n" + helper(width, str.substr(46, str.length()));
+		return " " + str.substr(0, 45) + "\n" + format_string(width, str.substr(46, str.length()));
 	}
 
 	int diff = width - len;
@@ -92,7 +92,7 @@ std::filesystem::path util::get_data_path(std::filesystem::path start) {
 std::string util::encrypt_decrypt(std::string pw) {
 	char key = 'x';
 	std::string to_process = pw;
-	for (int i = 0; i < pw.size(); i++) to_process[i] = to_process[i] ^ key;
+	for (int i = 0; i < pw.size(); i++) to_process[i] = to_process[i] + ' ';
 
 	return to_process;
 }
@@ -121,7 +121,7 @@ User util::parse_user(const std::string& line) {
 	divider = temp_line2.find('#');
 	data.push_back(temp_line2.substr(0, divider));
 	data.push_back(temp_line2.substr(divider + 1));
-	User ret(data[0], data[1], data[2], std::stoi(data[3]));
+	User ret(data[0], encrypt_decrypt(data[3]), data[2], std::stoi(data[1]));
 	return ret;
 }
 
@@ -173,8 +173,9 @@ bool util::lesser_quantity(const Item& item, double quantity) {
 	return false;
 }
 
-
-bool util::is_leap(int year) { return (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)); }
+bool util::is_leap(int year) {
+	return (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0));
+}
 
 bool util::current_date_valid(int d, int m, int y, std::string curr_date) {
 	std::string current_date = curr_date;
@@ -200,7 +201,7 @@ bool util::current_date_valid(int d, int m, int y, std::string curr_date) {
 }
 
 bool util::is_valid_date(int d, int m, int y, std::string curr_date) {
-	
+
 	const int MAX_VALID_YR = 9999;
 	const int MIN_VALID_YR = 1800;
 

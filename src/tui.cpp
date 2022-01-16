@@ -223,7 +223,7 @@ void tui::supervisor_interface(Database& db) {
 												center(backup_button->Render()) |
 													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(logout_button->Render()) |
-													size(WIDTH, EQUAL, 50) | ftxui::color(red)}) |
+													size(WIDTH, EQUAL, 100) | ftxui::color(red)}) |
 								   borderRounded | size(WIDTH, EQUAL, 100) | center)}) |
 			   hcenter | color(light_gray);
 	});
@@ -298,14 +298,16 @@ void tui::selling_items_interface(Database& db) {
 		if (item_available) {
 			db.update_quantity_by_id(items_copy, list[selected][0], -d_quantity);
 			Item new_it = db.find_item_by_barcode(list[selected][0]);
-			int i;
-			for (i = 0; i < sold_items.size(); i++) {
-				auto item = sold_items[i].first;
-				if (item == new_it) break;
+			bool update = false;
+			for (auto& [item, quantity] : sold_items) {
+				if (item.get_barcode() == list[selected][0]) {
+					item.set_quantity(item.get_quantity() + d_quantity);
+					update = true;
+				}
 			}
-			if (i == sold_items.size()) sold_items.push_back(std::make_pair(new_it, d_quantity));
-			else
-				sold_items[i].first.set_quantity(sold_items[i].first.get_quantity() + d_quantity);
+			if (!update) {
+				sold_items.push_back(std::make_pair(new_it, d_quantity));
+			}
 		}
 	});
 
@@ -334,19 +336,9 @@ void tui::selling_items_interface(Database& db) {
 		{radiobox, quantity_input, add_item_button, generate_receipt_button, cancel_button});
 
 	auto depth_0_renderer = Renderer(depth_0_container, [&] {
-		// std::string inp;
-		// for (int i = 0; i < sold_items.size(); i++) {
-		//	auto item = sold_items[i];
-		//	std::stringstream str;
-		//	str << " " << std::left << std::setw(8) << item.first.get_barcode() << std::setw(21)
-		//		<< item.first.get_name() << std::setw(9) << item.first.get_price() << std::setw(6)
-		//		<< item.second << '\n';
-		//	inp += str.str();
-		// }
 		return ftxui::vbox({
 				   hbox(center(text(db.get_current_user().get_username()))),
 				   separator(),
-				   // 0123456789012345678901234567890123456
 				   hbox(center(text("     SIFRA   ARTIKAL              CIJENA"))),
 				   radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) |
 					   border,
@@ -542,19 +534,21 @@ void tui::create_employee_interface(Database& db) {
 
 	auto cancel_button = ftxui::Button("ODUSTANI", [&] { employee_overview(db); });
 	auto confirm_button = ftxui::Button("SACUVAJ", [&] {
-		std::vector<User> temp = db.get_user_data();
-		std::string position = (selected == 0) ? "radnik" : "sef";
-		temp.push_back({correct_name, correct_password, position, 0});
-		auto pos = db.find_user("admin");
-		db.set_user_data(temp);
+		if (db.find_user(name) == -1) {
+			std::vector<User> temp = db.get_user_data();
+			std::string position = (selected == 0) ? "radnik" : "sef";
+			temp.push_back({correct_name, correct_password, position, 0});
+			auto pos = db.find_user("admin");
+			db.set_user_data(temp);
 
-		if (pos != -1 && db.number_of_bosses()) {
-			std::vector<User> removal;
-			removal.push_back(temp[pos]);
-			db.delete_users(removal);
+			if (pos != -1 && db.number_of_bosses()) {
+				std::vector<User> removal;
+				removal.push_back(temp[pos]);
+				db.delete_users(removal);
+			}
+			db.write_users_to_file(db.get_paths().get_path("korisnici"));
+			employee_overview(db);
 		}
-		db.write_users_to_file(db.get_paths().get_path("korisnici"));
-		employee_overview(db);
 	});
 	bool valid_account = false;
 
@@ -563,7 +557,7 @@ void tui::create_employee_interface(Database& db) {
 							 user_type, Maybe(confirm_button, &valid_account)});
 
 	auto renderer = Renderer(components, [&] {
-		if (name.size() > 0 && db.find_user(name) == -1) {
+		if (name.size() > 0) {
 			correct_name = name;
 		}
 		if (db.is_password_valid(password)) {
@@ -596,7 +590,6 @@ void tui::create_employee_interface(Database& db) {
 
 	screen.Loop(renderer);
 }
-
 
 void tui::items_overview(Database& db) {
 	struct CheckboxState {
@@ -765,8 +758,6 @@ void tui::items_overview(Database& db) {
 
 	screen.Loop(renderer);
 }
-
-
 
 void tui::create_item_interface(Database& db) {
 

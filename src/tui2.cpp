@@ -1,10 +1,10 @@
-#include "softver-za-prodavnice/tui.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <string>
 #include "ftxui/component/component.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "softver-za-prodavnice/item.hpp"
+#include "softver-za-prodavnice/tui.hpp"
 #include "softver-za-prodavnice/util.hpp"
 
 namespace {
@@ -23,7 +23,7 @@ ftxui::Color white = {244, 244, 244};
 ftxui::Color light_gray = {148, 176, 194};
 ftxui::Color gray = {86, 108, 134};
 ftxui::Color dark_gray = {51, 60, 87};
-} 
+} // namespace
 
 void tui::report_interface(Database& db) {
 
@@ -63,11 +63,11 @@ void tui::report_interface(Database& db) {
 			comparator = std::stod(filter_value);
 		}
 		switch (selected) {
-			case 0: items_for_display = db.get_item_data(); break;
-			case 1: items_for_display = db.filter(util::greater_quantity, comparator); break;
-			case 2: items_for_display = db.filter(util::lesser_quantity, comparator); break;
-			case 3: items_for_display = db.filter(util::greater_price, comparator); break;
-			case 4: items_for_display = db.filter(util::lesser_price, comparator); break;
+		case 0: items_for_display = db.get_item_data(); break;
+		case 1: items_for_display = db.filter(util::greater_quantity, comparator); break;
+		case 2: items_for_display = db.filter(util::lesser_quantity, comparator); break;
+		case 3: items_for_display = db.filter(util::greater_price, comparator); break;
+		case 4: items_for_display = db.filter(util::lesser_price, comparator); break;
 		}
 		last_selected = selected;
 	});
@@ -85,7 +85,6 @@ void tui::report_interface(Database& db) {
 	}
 	auto filter = Container::Vertical({item_filter, value_input});
 
-
 	auto cancel_button = Button("ODUSTANI", [&] { supervisor_interface(db); });
 	auto daily_button = Button("DNEVNI IZVJESTAJ", [&] { daily_report(db, selected_items); });
 	auto weekly_button = Button("SEDMICNI IZVJESTAJ", [&] { weekly_report(db, selected_items); });
@@ -94,66 +93,65 @@ void tui::report_interface(Database& db) {
 	auto arbitrary_button =
 		Button("PROIZVOLJNI IZVJESTAJ", [&] { arbitrary_report(db, selected_items); });
 
-	auto component = Container::Vertical({cancel_button, daily_button, weekly_button, monthly_button,
+	auto component =
+		Container::Vertical({cancel_button, daily_button, weekly_button, monthly_button,
 							 yearly_button, arbitrary_button, items, items, filter, filter_button});
 
 	auto renderer = Renderer(component, [&] {
-			number_of_items = items_for_display.size();
-			for (size_t i = 0; i < number_of_items; ++i) {
-				auto it =
-					std::find(selected_items.begin(), selected_items.end(), items_for_display[i]);
-				if (states[i].checked) {
-					if (it == selected_items.end()) {
-						selected_items.push_back(items_for_display[i]);
-					}
-				} else {
-					if (it != selected_items.end()) {
-						selected_items.erase(it);
-					}
+		number_of_items = items_for_display.size();
+		for (size_t i = 0; i < number_of_items; ++i) {
+			auto it = std::find(selected_items.begin(), selected_items.end(), items_for_display[i]);
+			if (states[i].checked) {
+				if (it == selected_items.end()) {
+					selected_items.push_back(items_for_display[i]);
+				}
+			} else {
+				if (it != selected_items.end()) {
+					selected_items.erase(it);
 				}
 			}
+		}
 
-			items->DetachAllChildren();
+		items->DetachAllChildren();
 
-			for (int i = 0; i < number_of_items; ++i) {
-				std::stringstream ss;
-				ss << "  " << std::left << std::setw(10) << items_for_display[i].get_barcode()
-				   << std::setw(21) << items_for_display[i].get_name() << std::setw(8)
-				   << items_for_display[i].get_price() << std::setw(8)
-				   << items_for_display[i].get_quantity();
-				std::string display_string = ss.str();
-				items->Add(Checkbox(display_string, &states[i].checked));
-			}
+		for (int i = 0; i < number_of_items; ++i) {
+			std::stringstream ss;
+			ss << "  " << std::left << std::setw(10) << items_for_display[i].get_barcode()
+			   << std::setw(21) << items_for_display[i].get_name() << std::setw(8)
+			   << items_for_display[i].get_price() << std::setw(8)
+			   << items_for_display[i].get_quantity();
+			std::string display_string = ss.str();
+			items->Add(Checkbox(display_string, &states[i].checked));
+		}
 
-			return vbox(
-				{vbox({center(bold(text("SPISAK ARTIKALA"))), separator(),
-					   ftxui::hbox(
-						   {ftxui::vbox({
-								text("      SIFRA     ARTIKAL              CIJENA  KOLICINA"),
-								ftxui::separatorHeavy(),
-								items->Render() | vscroll_indicator | frame | border | size(HEIGHT, LESS_THAN, 8),
-							}),
-							ftxui::vbox({center(bold(text("Filter: "))), separator(),
-										 filter->Render(),
-										 filter_button->Render() | ftxui::size(HEIGHT, EQUAL, 3)}) |
-								border}),
-					 hbox({center(daily_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
-						  hcenter,
-					  hbox({center(weekly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
+		return vbox(
+			{vbox({center(bold(text("SPISAK ARTIKALA"))), separator(),
+				   ftxui::hbox(
+					   {ftxui::vbox({
+							text("      SIFRA     ARTIKAL              CIJENA  KOLICINA"),
+							ftxui::separatorHeavy(),
+							items->Render() | vscroll_indicator | frame | border |
+								size(HEIGHT, LESS_THAN, 8),
+						}),
+						ftxui::vbox({center(bold(text("Filter: "))), separator(), filter->Render(),
+									 filter_button->Render() | ftxui::size(HEIGHT, EQUAL, 3)}) |
+							border}),
+				   hbox({center(daily_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
 					   hcenter,
-					  hbox({center(monthly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
+				   hbox({center(weekly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
 					   hcenter,
-					  hbox({center(yearly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
+				   hbox({center(monthly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
 					   hcenter,
-					  hbox({center(arbitrary_button->Render()) | size(HEIGHT, EQUAL, 3) |
+				   hbox({center(yearly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
+					   hcenter,
+				   hbox({center(arbitrary_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
+					   hcenter,
+				   hbox({center(cancel_button->Render()) | size(HEIGHT, EQUAL, 3) | color(red) |
 						 vcenter}) |
-					   hcenter,
-					  hbox({center(cancel_button->Render()) | size(HEIGHT, EQUAL, 3) |
-							 color(red) | vcenter}) | hcenter
-						  
-						  }) |
-					 border | size(WIDTH, EQUAL, 150) | vcenter | hcenter
-								});
+					   hcenter
+
+			 }) |
+			 border | size(WIDTH, EQUAL, 150) | vcenter | hcenter});
 	});
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
@@ -161,10 +159,7 @@ void tui::report_interface(Database& db) {
 	screen.Loop(renderer);
 }
 
-void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
-
-}
-
+void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {}
 
 void tui::daily_report(Database& db, const std::vector<Item>& items) {
 	std::string day;
@@ -181,17 +176,21 @@ void tui::daily_report(Database& db, const std::vector<Item>& items) {
 	auto generate_button = Button("GENERISI IZVJESTAJ", [&] {
 		bool check = true;
 		try {
+			if (day.length() > 2 || month.length() > 2 || year.length() > 4) throw "Error";
 			i_day = std::stoi(day);
 			i_month = std::stoi(month);
 			i_year = std::stoi(year);
-		} catch (const std::exception& exc) {
+		} catch (... /* const std::exception& exc */) {
 			depth = 1; // nepravilan unos, ne moze se konvertovati u int
 			check = false;
 		}
 		if (check) {
 			if (util::is_valid_date(i_day, i_month, i_year, db.current_date_time())) {
-				std::string temp =
-					std::to_string(i_year) + std::to_string(i_month) + std::to_string(i_day);
+				std::string temp = std::to_string(i_year);
+
+				temp += (i_month < 10 ? "0" : "") + std::to_string(i_month) +
+						(i_day < 10 ? "0" : "") + std::to_string(i_day);
+
 				int date = std::stoi(temp);
 				db.create_report(items, date, date);
 				supervisor_interface(db);
@@ -291,17 +290,21 @@ void tui::weekly_report(Database& db, const std::vector<Item>& items) {
 	auto generate_button = Button("GENERISI IZVJESTAJ", [&] {
 		bool check = true;
 		try {
+			if (day.length() > 2 || month.length() > 2 || year.length() > 4) throw "error";
 			i_day = std::stoi(day);
 			i_month = std::stoi(month);
 			i_year = std::stoi(year);
-		} catch (const std::exception& exc) {
+		} catch (...) {
 			depth = 1; // nepravilan unos, ne moze se konvertovati u int
 			check = false;
 		}
 		if (check) {
 			if (util::is_valid_date(i_day, i_month, i_year, db.current_date_time())) {
-				std::string temp =
-					std::to_string(i_year) + std::to_string(i_month) + std::to_string(i_day);
+				std::string temp = std::to_string(i_year);
+
+				temp += (i_month < 10 ? "0" : "") + std::to_string(i_month) +
+						(i_day < 10 ? "0" : "") + std::to_string(i_day);
+
 				int curr_date = std::stoi(temp);
 
 				int next_date = util::week_increase(i_day, i_month, i_year);
@@ -402,6 +405,7 @@ void tui::monthly_report(Database& db, const std::vector<Item>& items) {
 	auto generate_button = Button("GENERISI IZVJESTAJ", [&] {
 		bool check = true;
 		try {
+			if (month.length() > 2 || year.length() > 4) throw "error";
 			i_month = std::stoi(month);
 			i_year = std::stoi(year);
 		} catch (const std::exception& exc) {
@@ -410,8 +414,7 @@ void tui::monthly_report(Database& db, const std::vector<Item>& items) {
 		}
 		if (check) {
 			if (util::is_valid_date(1, i_month, i_year, db.current_date_time())) {
-				std::string temp =
-					std::to_string(i_year) + std::to_string(i_month) + "01";
+				std::string temp = std::to_string(i_year) + std::to_string(i_month) + "01";
 				int curr_date = std::stoi(temp);
 
 				int last_day = util::number_of_days(i_month, i_year);
@@ -509,6 +512,7 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 	auto generate_button = Button("GENERISI IZVJESTAJ", [&] {
 		bool check = true;
 		try {
+			if (year.length() > 4) throw "error";
 			i_year = std::stoi(year);
 		} catch (const std::exception& exc) {
 			depth = 1; // nepravilan unos, ne moze se konvertovati u int
@@ -516,10 +520,9 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 		}
 		if (check) {
 			if (util::is_valid_date(1, 1, i_year, db.current_date_time())) {
-				std::string temp =
-					std::to_string(i_year) + "01" + "01";
+				std::string temp = std::to_string(i_year) + "01" + "01";
 				int curr_date = std::stoi(temp);
-				
+
 				std::string next = std::to_string(i_year) + "12" + "31";
 				int next_date = std::stoi(next);
 				db.create_report(items, curr_date, next_date);
@@ -552,7 +555,7 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 		});
 	});
 
-		auto on_agree = [&]() { depth = 0; };
+	auto on_agree = [&]() { depth = 0; };
 
 	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 	auto depth_2_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
