@@ -192,7 +192,7 @@ void tui::daily_report(Database& db, const std::vector<Item>& items) {
 						(i_day < 10 ? "0" : "") + std::to_string(i_day);
 
 				int date = std::stoi(temp);
-				db.create_report(items, date, date);
+				db.write_report(items, date, date);
 				supervisor_interface(db);
 			} else
 				depth = 2; // nevalidan datum
@@ -308,7 +308,7 @@ void tui::weekly_report(Database& db, const std::vector<Item>& items) {
 				int curr_date = std::stoi(temp);
 
 				int next_date = util::week_increase(i_day, i_month, i_year);
-				db.create_report(items, curr_date, next_date);
+				db.write_report(items, curr_date, next_date);
 				supervisor_interface(db);
 			} else
 				depth = 2; // nevalidan datum
@@ -422,7 +422,7 @@ void tui::monthly_report(Database& db, const std::vector<Item>& items) {
 					std::to_string(i_year) + std::to_string(i_month) + std::to_string(last_day);
 
 				int next_date = std::stoi(next);
-				db.create_report(items, curr_date, next_date);
+				db.write_report(items, curr_date, next_date);
 				supervisor_interface(db);
 			} else
 				depth = 2; // nevalidan datum
@@ -525,7 +525,7 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 
 				std::string next = std::to_string(i_year) + "12" + "31";
 				int next_date = std::stoi(next);
-				db.create_report(items, curr_date, next_date);
+				db.write_report(items, curr_date, next_date);
 				supervisor_interface(db);
 			} else
 				depth = 2; // nevalidna godina

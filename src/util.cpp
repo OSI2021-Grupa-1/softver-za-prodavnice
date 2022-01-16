@@ -1,6 +1,7 @@
 #include "softver-za-prodavnice/util.hpp"
 #include <list>
 #include <stdexcept>
+#include <sstream>
 #include "softver-za-prodavnice/database.hpp"
 
 std::vector<std::string> util::get_lines(const std::string& path) {
@@ -135,7 +136,7 @@ User util::parse_user(const std::string& line) {
 	divider = temp_line2.find('#');
 	data.push_back(temp_line2.substr(0, divider));
 	data.push_back(temp_line2.substr(divider + 1));
-	User ret(data[0], decrypt(data[3]), data[2], std::stoi(data[1]));
+	User ret(data[0], decrypt(data[3]), data[1], std::stoi(data[2]));
 	return ret;
 }
 
@@ -283,4 +284,14 @@ int util::week_increase(int d, int m, int y) {
 	std::string date = year + month + day;
 
 	return std::stoi(date);
+}
+
+std::string util::int_date_to_string(const int& date) {
+	std::stringstream ss;
+	ss << date;
+	std::string ret;
+	ss >> ret;
+	ret.insert(4, ".");
+	ret.insert(7, ".");
+	return ret;
 }
