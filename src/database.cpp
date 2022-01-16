@@ -37,7 +37,7 @@ void Database::delete_items(const std::vector<Item>& items) {
 }
 
 void Database::reset_attempts(const std::string& usr) {
-	auto it = find_user(std::move(usr));
+	auto it = find_user(usr);
 	user_data[it].reset_num_logins();
 	write_users_to_file(paths.get_path("korisnici"));
 }
@@ -141,6 +141,41 @@ bool Database::check_item_availability(const std::string& other_barcode, const d
 	return true;
 }
 
+void Database::write_report(const std::vector<Item>& items, const int& start_date, const int& end_date) {
+	std::vector<Item> report = create_report(items, start_date, end_date);
+	if (!std::filesystem::exists(paths.get_path("izvjestaji"))) {
+		std::filesystem::create_directories(paths.get_path("izvjestaji"));
+	}
+	std::string name =
+		util::int_date_to_string(start_date) + " - " + util::int_date_to_string(end_date);
+	if (auto file = std::ofstream(paths.get_path("izvjestaji") + name)) {
+		double price_sum = 0.0, quantity_sum = 0.0;
+		file << "Izvjestaj za period " << name << "\n\n\n";
+		file << std::left << std::setw(4) << "RB " << std::left << std::setw(11) << "SIFRA "
+			 << std::setw(30) << "NAZIV " << std::setw(11) << "CIJENA " << std::setw(11)
+			 << "KOLICINA "
+			 << "\n";
+		file << "-------------------------------------------------------------------\n";
+		for (std::size_t i = 0; i < report.size(); ++i) {
+			file << std::left << std::setw(4) << i + 1 << std::left << std::setw(11)
+				 << report[i].get_barcode() << std::setw(30) << report[i].get_name()
+				 << std::setw(11) << report[i].get_price() << std::setw(11)
+				 << report[i].get_quantity() << "\n";
+			price_sum += report[i].get_price();
+			quantity_sum += report[i].get_quantity();
+		}
+		file << "-------------------------------------------------------------------\n";
+		file << "\n"
+			 << "\n"
+			 << "\n";
+		file << std::right << std::setw(67) << "Ukupna kolicina: " << quantity_sum << "\n";
+		file << std::right << std::setw(67) << "Ukupna cijena: " << price_sum << "\n";
+		file << std::right << std::setw(67) << "Datum: " << current_date_time().substr(0, 11) << "\n\n";
+		file << std::right << std::setw(67) << "Nalog :" << current_user.get_username();
+		file.close();
+	}
+}
+
 std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date,
 										  const int& end_date) {
 	std::vector<Item> report{};
@@ -200,13 +235,12 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 								const std::string& date) {
-	// nije jos definisana putanja gdje ce se fajl praviti
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< std::string path = paths.get_path("");
+	std::string path = paths.get_path("racuni");
 
-	std::string file_name = util::generete_receipt_file_name(date);
+	path += util::generete_receipt_file_name(date);
 
 	std::fstream file;
-	file.open(file_name, std::ios::out);
+	file.open(path, std::ios::out);
 	double sum = 0;
 	if (file.is_open()) {
 		int width = 48;
