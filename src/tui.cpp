@@ -541,7 +541,7 @@ void tui::create_employee_interface(Database& db) {
 			auto pos = db.find_user("admin");
 			db.set_user_data(temp);
 
-			if (pos != -1 && db.number_of_bosses()) {
+			if (pos != -1 && db.number_of_bosses() > 1) {
 				std::vector<User> removal;
 				removal.push_back(temp[pos]);
 				db.delete_users(removal);
