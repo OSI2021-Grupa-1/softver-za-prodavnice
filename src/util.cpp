@@ -1,6 +1,7 @@
 #include "softver-za-prodavnice/util.hpp"
 #include <list>
 #include <stdexcept>
+#include <sstream>
 #include "softver-za-prodavnice/database.hpp"
 
 std::vector<std::string> util::get_lines(const std::string& path) {
@@ -283,4 +284,14 @@ int util::week_increase(int d, int m, int y) {
 	std::string date = year + month + day;
 
 	return std::stoi(date);
+}
+
+std::string util::int_date_to_string(const int& date) {
+	std::stringstream ss;
+	ss << date;
+	std::string ret;
+	ss >> ret;
+	ret.insert(4, ".");
+	ret.insert(7, ".");
+	return ret;
 }
