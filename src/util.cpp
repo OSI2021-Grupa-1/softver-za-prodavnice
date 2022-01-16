@@ -135,7 +135,7 @@ User util::parse_user(const std::string& line) {
 	divider = temp_line2.find('#');
 	data.push_back(temp_line2.substr(0, divider));
 	data.push_back(temp_line2.substr(divider + 1));
-	User ret(data[0], decrypt(data[3]), data[2], std::stoi(data[1]));
+	User ret(data[0], decrypt(data[3]), data[1], std::stoi(data[2]));
 	return ret;
 }
 
