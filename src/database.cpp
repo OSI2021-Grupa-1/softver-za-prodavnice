@@ -200,13 +200,12 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 								const std::string& date) {
-	// nije jos definisana putanja gdje ce se fajl praviti
-	// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< std::string path = paths.get_path("");
+	std::string path = paths.get_path("racuni");
 
-	std::string file_name = util::generete_receipt_file_name(date);
+	path += util::generete_receipt_file_name(date);
 
 	std::fstream file;
-	file.open(file_name, std::ios::out);
+	file.open(path, std::ios::out);
 	double sum = 0;
 	if (file.is_open()) {
 		int width = 48;

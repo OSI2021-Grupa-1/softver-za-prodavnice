@@ -1,3 +1,5 @@
 korisnici=korisnici.txt
 artikli_na_stanju=artikli_na_stanju.txt
 prodani_artikli=prodani_artikli.txt
+racuni=/racuni/
+izvjestaji=/izvjestaji/
