@@ -68,7 +68,7 @@ std::string util::generete_receipt_file_name(std::string current_date_time) {
 std::string util::format_string(int width, const std::string& str) {
 	int len = str.length();
 	if (width < len - 2) {
-		return " " + str.substr(0, 45) + "\n" + format_string(width, str.substr(46, str.length()));
+		return " " + str.substr(0, 45) + "\n" + format_string(width, str.substr(45, str.length()));
 	}
 
 	int diff = width - len;
