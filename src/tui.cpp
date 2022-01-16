@@ -716,6 +716,9 @@ void tui::items_overview(Database& db) {
 		last_selected = selected;
 	});
 
+	std::vector<CheckboxState> states(number_of_items);
+	auto items = Container::Vertical({});
+
 	auto delete_button = ftxui::Button("IZBRISI ARTIKLE", [&] {
 		db.delete_items(selected_items);
 		for (auto item : selected_items) {
@@ -724,16 +727,16 @@ void tui::items_overview(Database& db) {
 				items_for_display.erase(it);
 			}
 		}
+		for (auto& st : states) {
+			st.checked = false;
+		}
 		selected_items = {};
 	});
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
-	std::vector<CheckboxState> states(number_of_items);
-	auto items = Container::Vertical({});
-
 	// legenda
 	std::stringstream title_stream;
-	title_stream << "  " << std::left << std::setw(8) << " sifra " << std::setw(21) << " naziv "
+	title_stream << "  " << std::left << std::setw(11) << " sifra " << std::setw(30) << " naziv "
 				 << std::setw(6) << " cijena " << std::setw(6) << " kolicina ";
 	auto legend = ftxui::text(title_stream.str());
 
@@ -773,8 +776,8 @@ void tui::items_overview(Database& db) {
 		items->DetachAllChildren();
 		for (int i = 0; i < number_of_items; ++i) {
 			std::stringstream ss;
-			ss << "  " << std::left << std::setw(8) << items_for_display[i].get_barcode()
-			   << std::setw(21) << items_for_display[i].get_name() << std::setw(6)
+			ss << "  " << std::left << std::setw(11) << items_for_display[i].get_barcode()
+			   << std::setw(30) << items_for_display[i].get_name() << std::setw(6)
 			   << items_for_display[i].get_price() << std::setw(6)
 			   << items_for_display[i].get_quantity();
 			std::string display_string = ss.str();

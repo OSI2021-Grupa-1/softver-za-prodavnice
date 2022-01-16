@@ -147,8 +147,8 @@ void Database::write_report(const std::vector<Item>& items, const int& start_dat
 		std::filesystem::create_directories(paths.get_path("izvjestaji"));
 	}
 	std::string name =
-		util::int_date_to_string(start_date) + " - " + util::int_date_to_string(end_date);
-	if (auto file = std::ofstream(paths.get_path("izvjestaji") + name)) {
+		util::int_date_to_string(start_date) + "-" + util::int_date_to_string(end_date);
+	if (auto file = std::ofstream(paths.get_path("izvjestaji") + name + ".txt")) {
 		double price_sum = 0.0, quantity_sum = 0.0;
 		file << "Izvjestaj za period " << name << "\n\n\n";
 		file << std::left << std::setw(4) << "RB " << std::left << std::setw(11) << "SIFRA "
