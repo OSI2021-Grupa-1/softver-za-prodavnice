@@ -4,6 +4,7 @@
 #include <string>
 #include "ftxui/component/screen_interactive.hpp"
 #include "softver-za-prodavnice/config.hpp"
+#include "softver-za-prodavnice/item.hpp"
 #include "softver-za-prodavnice/tui.hpp"
 #include "softver-za-prodavnice/user.hpp"
 #include "softver-za-prodavnice/util.hpp"

@@ -141,16 +141,22 @@ bool Database::check_item_availability(const std::string& other_barcode, const d
 	return true;
 }
 
-void Database::write_report(const std::vector<Item>& items, const int& start_date, const int& end_date) {
+void Database::write_report(const std::vector<Item>& items, const int& start_date,
+							const int& end_date) {
+
 	std::vector<Item> report = create_report(items, start_date, end_date);
-	if (!std::filesystem::exists(paths.get_path("izvjestaji"))) {
-		std::filesystem::create_directories(paths.get_path("izvjestaji"));
+
+	std::filesystem::path report_folder = paths.get_prefix().parent_path() / "reports";
+	if (!std::filesystem::exists(report_folder)) {
+		std::filesystem::create_directories(report_folder);
 	}
+
 	std::string name =
 		util::int_date_to_string(start_date) + "-" + util::int_date_to_string(end_date);
-	if (auto file = std::ofstream(paths.get_path("izvjestaji") + name + ".txt")) {
+	if (auto file = std::ofstream(report_folder / (name + ".txt"))) {
 		double price_sum = 0.0, quantity_sum = 0.0;
 		file << "Izvjestaj za period " << name << "\n\n\n";
+		file << "-------------------------------------------------------------------\n";
 		file << std::left << std::setw(4) << "RB " << std::left << std::setw(11) << "SIFRA "
 			 << std::setw(30) << "NAZIV " << std::setw(11) << "CIJENA " << std::setw(11)
 			 << "KOLICINA "
@@ -170,8 +176,9 @@ void Database::write_report(const std::vector<Item>& items, const int& start_dat
 			 << "\n";
 		file << std::right << std::setw(67) << "Ukupna kolicina: " << quantity_sum << "\n";
 		file << std::right << std::setw(67) << "Ukupna cijena: " << price_sum << "\n";
-		file << std::right << std::setw(67) << "Datum: " << current_date_time().substr(0, 11) << "\n\n";
-		file << std::right << std::setw(67) << "Nalog :" << current_user.get_username();
+		file << std::right << std::setw(67) << "Datum: " << current_date_time().substr(0, 11)
+			 << "\n\n";
+		file << std::right << std::setw(67) << "Nalog: " << current_user.get_username();
 		file.close();
 	}
 }
@@ -235,12 +242,13 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 								const std::string& date) {
-	std::string path = paths.get_path("racuni");
-
-	path += util::generete_receipt_file_name(date);
+	std::filesystem::path receipt_folder = paths.get_prefix().parent_path() / "receipts";
+	if (!std::filesystem::exists(receipt_folder)) {
+		std::filesystem::create_directories(receipt_folder);
+	}
 
 	std::fstream file;
-	file.open(path, std::ios::out);
+	file.open(receipt_folder / (util::generete_receipt_file_name(date) + ".txt"), std::ios::out);
 	double sum = 0;
 	if (file.is_open()) {
 		int width = 48;
