@@ -56,9 +56,11 @@ class Database {
 	void update_items(std::vector<std::pair<Item, double>> items);
 
 	bool check_item_availability(const std::string& other_barcode, const double& quantity);
-
+	
 	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date,
-									const int& end_date, std::string& path);
+									const int& end_date);
+	void write_report(const std::vector<Item>& items, const int& start_date, const int& end_date);
+
 	int search_item_in_vector(const std::vector<Item>& vect, const std::string& barcode);
 
 	void generate_receipt(std::vector<std::pair<Item, double>> sold_items, const std::string& date);

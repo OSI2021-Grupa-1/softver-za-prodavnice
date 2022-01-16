@@ -1,6 +1,8 @@
 #include "softver-za-prodavnice/util.hpp"
 #include <list>
 #include <stdexcept>
+#include <sstream>
+#include "softver-za-prodavnice/database.hpp"
 
 std::vector<std::string> util::get_lines(const std::string& path) {
 	std::vector<std::string> ret;
@@ -63,10 +65,10 @@ std::string util::generete_receipt_file_name(std::string current_date_time) {
 	return file_name;
 }
 
-std::string util::helper(int width, const std::string& str) {
+std::string util::format_string(int width, const std::string& str) {
 	int len = str.length();
 	if (width < len - 2) {
-		return " " + str.substr(0, 45) + "\n" + helper(width, str.substr(46, str.length()));
+		return " " + str.substr(0, 45) + "\n" + format_string(width, str.substr(45, str.length()));
 	}
 
 	int diff = width - len;
@@ -88,12 +90,26 @@ std::filesystem::path util::get_data_path(std::filesystem::path start) {
 	return {};
 }
 
-std::string util::encrypt_decrypt(std::string pw) {
-	char key = 'x';
-	std::string to_process = pw;
-	for (int i = 0; i < pw.size(); i++) to_process[i] = to_process[i] ^ key;
+std::string util::encrypt(std::string ret) {
+	for (std::size_t i = 0; i < ret.length(); ++i) {
+		if (ret[i] == 'x' || ret[i] == 'y' || ret[i] == 'z') ret[i] -= 23;
+		else if (ret[i] == ' ')
+			ret[i] = ret[i];
+		else
+			ret[i] += 3;
+	}
+	return ret;
+}
 
-	return to_process;
+std::string util::decrypt(std::string ret) {
+	for (std::size_t i = 0; i < ret.length(); ++i) {
+		if (ret[i] == 'a' || ret[i] == 'b' || ret[i] == 'c') ret[i] += 23;
+		else if (ret[i] == ' ')
+			ret[i] = ret[i];
+		else
+			ret[i] -= 3;
+	}
+	return ret;
 }
 
 std::vector<User> util::read_users_from_file(const std::string path) {
@@ -120,7 +136,7 @@ User util::parse_user(const std::string& line) {
 	divider = temp_line2.find('#');
 	data.push_back(temp_line2.substr(0, divider));
 	data.push_back(temp_line2.substr(divider + 1));
-	User ret(data[0], data[1], data[2], std::stoi(data[3]));
+	User ret(data[0], decrypt(data[3]), data[1], std::stoi(data[2]));
 	return ret;
 }
 
@@ -169,5 +185,138 @@ bool util::lesser_price(const Item& item, double price) {
 
 bool util::lesser_quantity(const Item& item, double quantity) {
 	if (item.get_quantity() < quantity) return true;
+	return false;
+}
+
+bool util::is_leap(int year) {
+	return (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0));
+}
+
+bool util::current_date_valid(int d, int m, int y, std::string curr_date) {
+	std::string current_date = curr_date;
+
+	std::string year = current_date.substr(6, 4);
+	std::string month = current_date.substr(3, 2);
+	std::string day = current_date.substr(0, 2);
+
+	int date = std::stoi(year + month + day);
+
+	day = std::to_string(d);
+	if (d < 10) day = "0" + day;
+
+	month = std::to_string(m);
+	if (m < 10) month = "0" + month;
+
+	year = std::to_string(y);
+
+	int new_date = stoi(year + month + day);
+
+	if (new_date > date) return false;
+	return true;
+}
+
+bool util::is_valid_date(int d, int m, int y, std::string curr_date) {
+
+	const int MAX_VALID_YR = 9999;
+	const int MIN_VALID_YR = 1800;
+
+	if (!current_date_valid(d, m, y, curr_date)) return false;
+
+	if (y > MAX_VALID_YR || y < MIN_VALID_YR) return false;
+	if (m < 1 || m > 12) return false;
+	if (d < 1 || d > 31) return false;
+
+	if (m == 2) {
+		if (is_leap(y)) return (d <= 29);
+		else
+			return (d <= 28);
+	}
+
+	if (m == 4 || m == 6 || m == 9 || m == 11) return (d <= 30);
+
+	return true;
+}
+
+int util::number_of_days(int m, int y) {
+
+	if (m == 2) {
+		if (is_leap(y)) return 29;
+		else
+			return 28;
+	}
+
+	if (m == 4 || m == 6 || m == 9 || m == 11) return 30;
+	else
+		return 31;
+}
+
+int util::week_increase(int d, int m, int y) {
+	std::string day, month, year;
+	if (m == 2) {
+		if (is_leap(y)) {
+			if ((d + 7) > 22) m++;
+			d = (d + 7) % 29;
+		} else {
+			if ((d + 7) > 21) m++;
+			d = (d + 7) % 28;
+		}
+	}
+
+	if (m == 4 || m == 6 || m == 9 || m == 11) {
+		if ((d + 7) > 30) m++;
+		d = (d + 7) % 30;
+	} else {
+		if ((d + 7) > 31) m++;
+		d = (d + 7) % 31;
+		if (m == 13) {
+			m = 1;
+			y++;
+		}
+	}
+
+	day = std::to_string(d);
+	if (d < 10) day = "0" + day;
+
+	month = std::to_string(m);
+	if (m < 10) month = "0" + month;
+
+	year = std::to_string(y);
+	std::string date = year + month + day;
+
+	return std::stoi(date);
+}
+
+std::string util::int_date_to_string(const int& date) {
+	std::stringstream ss;
+	ss << date;
+	std::string ret;
+	ss >> ret;
+	ret.insert(4, ".");
+	ret.insert(7, ".");
+	return ret;
+}
+
+bool util::compare_date(int d, int m, int y, int d1, int m1, int y1) {
+	std::string day = std::to_string(d);
+	if (d < 10) day = "0" + day;
+
+	std::string month = std::to_string(m);
+	if (m < 10) month = "0" + month;
+
+	std::string year = std::to_string(y);
+
+	int first_date = stoi(year + month + day);
+
+	day = std::to_string(d1);
+	if (d1 < 10) day = "0" + day;
+
+	month = std::to_string(m1);
+	if (m1 < 10) month = "0" + month;
+
+	year = std::to_string(y1);
+
+	int seccond_date = stoi(year + month + day);
+
+	if (first_date <= seccond_date) return true;
 	return false;
 }

@@ -47,6 +47,9 @@ void tui::login_interface(Database& db) {
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
 	auto quit_app = screen.ExitLoopClosure();
+
+	int depth = 0;
+
 	auto log_in_button = ftxui::Button("PRIJAVI SE", [&] {
 		if (db.find_user(correct_name) >= 0) {
 			if (db.is_password_correct(correct_name, correct_password)) {
@@ -72,6 +75,8 @@ void tui::login_interface(Database& db) {
 
 					change_password(db, current_user, true, login_interface);
 				}
+			} else {
+				depth = 1; // netacna sifra
 			}
 		}
 	});
@@ -110,7 +115,34 @@ void tui::login_interface(Database& db) {
 			   hcenter | color(light_gray);
 	});
 
-	screen.Loop(renderer);
+	auto on_agree = [&]() { depth = 0; };
+
+	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+
+	auto depth_1_renderer = Renderer(depth_1_container, [&] {
+		return vbox({
+				   text("Netacna lozinka"),
+				   separator(),
+				   center(hbox(depth_1_container->Render())),
+			   }) |
+			   border;
+	});
+
+	auto main_container = Container::Tab({renderer, depth_1_renderer}, &depth);
+
+	auto main_renderer = Renderer(main_container, [&] {
+		Element document = renderer->Render();
+
+		if (depth == 1) {
+			document = dbox({
+				document,
+				depth_1_renderer->Render() | clear_under | center,
+			});
+		}
+		return document;
+	});
+
+	screen.Loop(main_renderer);
 }
 
 void tui::change_password(Database& db, User& user, bool quitable,
@@ -223,7 +255,7 @@ void tui::supervisor_interface(Database& db) {
 												center(backup_button->Render()) |
 													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(logout_button->Render()) |
-													size(WIDTH, EQUAL, 50) | ftxui::color(red)}) |
+													size(WIDTH, EQUAL, 100) | ftxui::color(red)}) |
 								   borderRounded | size(WIDTH, EQUAL, 100) | center)}) |
 			   hcenter | color(light_gray);
 	});
@@ -270,7 +302,7 @@ void tui::selling_items_interface(Database& db) {
 
 	for (int i = 0; i < db.get_item_data().size(); ++i) {
 		std::stringstream str;
-		str << "  " << std::left << std::setw(8) << list[i][0] << std::setw(21) << list[i][1]
+		str << "  " << std::left << std::setw(10) << list[i][0] << std::setw(21) << list[i][1]
 			<< std::setw(6) << list[i][2];
 		std::string inp = str.str();
 		entries.push_back(inp);
@@ -298,14 +330,16 @@ void tui::selling_items_interface(Database& db) {
 		if (item_available) {
 			db.update_quantity_by_id(items_copy, list[selected][0], -d_quantity);
 			Item new_it = db.find_item_by_barcode(list[selected][0]);
-			int i;
-			for (i = 0; i < sold_items.size(); i++) {
-				auto item = sold_items[i].first;
-				if (item == new_it) break;
+			bool update = false;
+			for (auto& [item, quantity] : sold_items) {
+				if (item.get_barcode() == list[selected][0]) {
+					quantity += d_quantity;
+					update = true;
+				}
 			}
-			if (i == sold_items.size()) sold_items.push_back(std::make_pair(new_it, d_quantity));
-			else
-				sold_items[i].first.set_quantity(sold_items[i].first.get_quantity() + d_quantity);
+			if (!update) {
+				sold_items.push_back(std::make_pair(new_it, d_quantity));
+			}
 		}
 	});
 
@@ -318,13 +352,14 @@ void tui::selling_items_interface(Database& db) {
 			db.generate_receipt(sold_items, current_time);
 
 			std::vector<Item> for_another_func;
-			for (auto item : sold_items) {
+			for (auto& item : sold_items) {
 				item.first.set_quantity(item.second);
 				for_another_func.push_back(item.first);
 			}
 			std::string date = current_time.substr(0, 10);
 			std::replace(date.begin(), date.end(), '.', '/');
 			db.write_sold_items_to_file(for_another_func, date);
+			db.write_items_to_file(db.get_paths().get_path("artikli_na_stanju"));
 			tui::employee_interface(db);
 		}
 	});
@@ -334,20 +369,10 @@ void tui::selling_items_interface(Database& db) {
 		{radiobox, quantity_input, add_item_button, generate_receipt_button, cancel_button});
 
 	auto depth_0_renderer = Renderer(depth_0_container, [&] {
-		// std::string inp;
-		// for (int i = 0; i < sold_items.size(); i++) {
-		//	auto item = sold_items[i];
-		//	std::stringstream str;
-		//	str << " " << std::left << std::setw(8) << item.first.get_barcode() << std::setw(21)
-		//		<< item.first.get_name() << std::setw(9) << item.first.get_price() << std::setw(6)
-		//		<< item.second << '\n';
-		//	inp += str.str();
-		// }
 		return ftxui::vbox({
 				   hbox(center(text(db.get_current_user().get_username()))),
 				   separator(),
-				   // 0123456789012345678901234567890123456
-				   hbox(center(text("     SIFRA   ARTIKAL              CIJENA"))),
+				   hbox(center(text("     SIFRA     ARTIKAL              CIJENA"))),
 				   radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) |
 					   border,
 				   center(hbox(ftxui::text(" Kolicina artikla:  ") | size(WIDTH, LESS_THAN, 20),
@@ -540,21 +565,28 @@ void tui::create_employee_interface(Database& db) {
 	int selected = 0;
 	auto user_type = Radiobox(&entries, &selected);
 
+	int depth = 0;
+
 	auto cancel_button = ftxui::Button("ODUSTANI", [&] { employee_overview(db); });
 	auto confirm_button = ftxui::Button("SACUVAJ", [&] {
-		std::vector<User> temp = db.get_user_data();
-		std::string position = (selected == 0) ? "radnik" : "sef";
-		temp.push_back({correct_name, correct_password, position, 0});
-		auto pos = db.find_user("admin");
-		db.set_user_data(temp);
-
-		if (pos != -1 && db.number_of_bosses()) {
-			std::vector<User> removal;
-			removal.push_back(temp[pos]);
-			db.delete_users(removal);
+		if (name.find('#') != std::string::npos) {
+			depth = 1; // ime sadrzi #
 		}
-		db.write_users_to_file(db.get_paths().get_path("korisnici"));
-		employee_overview(db);
+		else if (db.find_user(name) == -1) {
+			std::vector<User> temp = db.get_user_data();
+			std::string position = (selected == 0) ? "radnik" : "sef";
+			temp.push_back({correct_name, correct_password, position, 0});
+			auto pos = db.find_user("admin");
+			db.set_user_data(temp);
+
+			if (pos != -1 && db.number_of_bosses() > 1) {
+				std::vector<User> removal;
+				removal.push_back(temp[pos]);
+				db.delete_users(removal);
+			}
+			db.write_users_to_file(db.get_paths().get_path("korisnici"));
+			employee_overview(db);
+		}
 	});
 	bool valid_account = false;
 
@@ -563,7 +595,7 @@ void tui::create_employee_interface(Database& db) {
 							 user_type, Maybe(confirm_button, &valid_account)});
 
 	auto renderer = Renderer(components, [&] {
-		if (name.size() > 0 && db.find_user(name) == -1) {
+		if (name.size() > 0) {
 			correct_name = name;
 		}
 		if (db.is_password_valid(password)) {
@@ -593,11 +625,38 @@ void tui::create_employee_interface(Database& db) {
 
 			 }) | border});
 	});
+	
+	auto on_agree = [&]() { depth = 0; };
 
-	screen.Loop(renderer);
+	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+
+	auto depth_1_renderer = Renderer(depth_1_container, [&] {
+		return vbox({
+				   text("Korisnicko ime ne smije da sadrzi znak '#'"),
+				   separator(),
+				   center(hbox(depth_1_container->Render())),
+			   }) |
+			   border;
+	});
+
+	auto main_container = Container::Tab(
+		{renderer, depth_1_renderer},
+		&depth);
+
+	auto main_renderer = Renderer(main_container, [&] {
+		Element document = renderer->Render();
+
+		if (depth == 1) {
+			document = dbox({
+				document,
+				depth_1_renderer->Render() | clear_under | center,
+			});
+		}
+		return document;
+	});
+
+	screen.Loop(main_renderer);
 }
-
-void tui::report_interface(Database& db) {}
 
 void tui::items_overview(Database& db) {
 	struct CheckboxState {
@@ -657,6 +716,9 @@ void tui::items_overview(Database& db) {
 		last_selected = selected;
 	});
 
+	std::vector<CheckboxState> states(number_of_items);
+	auto items = Container::Vertical({});
+
 	auto delete_button = ftxui::Button("IZBRISI ARTIKLE", [&] {
 		db.delete_items(selected_items);
 		for (auto item : selected_items) {
@@ -665,16 +727,16 @@ void tui::items_overview(Database& db) {
 				items_for_display.erase(it);
 			}
 		}
+		for (auto& st : states) {
+			st.checked = false;
+		}
 		selected_items = {};
 	});
 	auto back_button = ftxui::Button("NAZAD", [&] { supervisor_interface(db); });
 
-	std::vector<CheckboxState> states(number_of_items);
-	auto items = Container::Vertical({});
-
 	// legenda
 	std::stringstream title_stream;
-	title_stream << "  " << std::left << std::setw(8) << " sifra " << std::setw(21) << " naziv "
+	title_stream << "  " << std::left << std::setw(11) << " sifra " << std::setw(30) << " naziv "
 				 << std::setw(6) << " cijena " << std::setw(6) << " kolicina ";
 	auto legend = ftxui::text(title_stream.str());
 
@@ -714,8 +776,8 @@ void tui::items_overview(Database& db) {
 		items->DetachAllChildren();
 		for (int i = 0; i < number_of_items; ++i) {
 			std::stringstream ss;
-			ss << "  " << std::left << std::setw(8) << items_for_display[i].get_barcode()
-			   << std::setw(21) << items_for_display[i].get_name() << std::setw(6)
+			ss << "  " << std::left << std::setw(11) << items_for_display[i].get_barcode()
+			   << std::setw(30) << items_for_display[i].get_name() << std::setw(6)
 			   << items_for_display[i].get_price() << std::setw(6)
 			   << items_for_display[i].get_quantity();
 			std::string display_string = ss.str();
@@ -797,10 +859,16 @@ void tui::create_item_interface(Database& db) {
 			cont = false;
 		}
 		if (cont) {
-			if (barcode.length() != 8) depth = 2; // duzina barkoda se razlikuje od 8
-			else if (barcode_exists)
+			if (barcode.length() != 8) {
+				depth = 2; // duzina barkoda se razlikuje od 8
+			} else if (barcode.find('#') != std::string::npos ||
+					   name.find('#') != std::string::npos) {
+				depth = 4; // postoji '#' u barkodu ili nazivu
+			} else if (barcode_exists) {
 				depth = 3; // barkod vec postoji
-			else {
+			} else if (name.length() > 30) {
+				depth = 5; // naziv artikla duzi od 30 karaktera
+			} else {
 				std::vector<Item> temp = db.get_item_data();
 				Item new_item(barcode, name, d_price, d_quantity);
 				temp.push_back(new_item);
@@ -846,10 +914,13 @@ void tui::create_item_interface(Database& db) {
 	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 	auto depth_2_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 	auto depth_3_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+	auto depth_4_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+	auto depth_5_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
+
 
 	auto depth_1_renderer = Renderer(depth_1_container, [&] {
 		return vbox({
-				   text("Nepravilan unos cijene ili kolicine"),
+				   text("Nepravilan unos cijene ili kolicine") | color(yellow),
 				   separator(),
 				   center(hbox(depth_1_container->Render())),
 			   }) |
@@ -871,9 +942,26 @@ void tui::create_item_interface(Database& db) {
 			   }) |
 			   border;
 	});
+	auto depth_4_renderer = Renderer(depth_4_container, [&] {
+		return vbox({
+				   text("Naziv i sifra artikla ne smiju da sadrze '#'"),
+				   separator(),
+				   center(hbox(depth_4_container->Render())),
+			   }) |
+			   border;
+	});
+	auto depth_5_renderer = Renderer(depth_5_container, [&] {
+		return vbox({
+				   text("Naziv artikla ne smije biti duzi od 30 karaktera"),
+				   separator(),
+				   center(hbox(depth_5_container->Render())),
+			   }) |
+			   border;
+	});
 
-	auto main_container = Container::Tab(
-		{depth_0_renderer, depth_1_renderer, depth_2_renderer, depth_3_renderer}, &depth);
+	auto main_container = Container::Tab({depth_0_renderer, depth_1_renderer, depth_2_renderer,
+										  depth_3_renderer, depth_4_renderer, depth_5_renderer},
+		&depth);
 
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = depth_0_renderer->Render();
@@ -893,9 +981,20 @@ void tui::create_item_interface(Database& db) {
 				document,
 				depth_3_renderer->Render() | clear_under | center,
 			});
+		} else if (depth == 4) {
+			document = dbox({
+				document,
+				depth_4_renderer->Render() | clear_under | center,
+			});
+		} else if (depth == 5) {
+			document = dbox({
+				document,
+				depth_5_renderer->Render() | clear_under | center,
+			});
 		}
 		return document;
 	});
+
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
 
 	screen.Loop(main_renderer);

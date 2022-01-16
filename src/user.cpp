@@ -1,5 +1,6 @@
 #include "softver-za-prodavnice/user.hpp"
 #include <string>
+#include "softver-za-prodavnice/util.hpp"
 
 User::User(std::string username, std::string password, std::string position,
 		   std::size_t number_of_logins)
@@ -34,8 +35,8 @@ std::size_t User::get_number_of_logins() const { return number_of_logins; }
 
 void User::set_password(const std::string& pw) { password = pw; }
 std::ostream& operator<<(std::ostream& os, const User& user) {
-	os << user.username << "#" << user.password << "#" << user.position << "#"
-	   << user.number_of_logins;
+	os << user.username << "#" << user.position << "#" << user.number_of_logins << "#"
+	   << util::encrypt(user.password);
 	return os;
 }
 

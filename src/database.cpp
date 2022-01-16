@@ -37,7 +37,7 @@ void Database::delete_items(const std::vector<Item>& items) {
 }
 
 void Database::reset_attempts(const std::string& usr) {
-	auto it = find_user(std::move(usr));
+	auto it = find_user(usr);
 	user_data[it].reset_num_logins();
 	write_users_to_file(paths.get_path("korisnici"));
 }
@@ -141,12 +141,54 @@ bool Database::check_item_availability(const std::string& other_barcode, const d
 	return true;
 }
 
+void Database::write_report(const std::vector<Item>& items, const int& start_date,
+							const int& end_date) {
+
+	std::vector<Item> report = create_report(items, start_date, end_date);
+
+	std::filesystem::path report_folder = paths.get_prefix().parent_path() / "reports";
+	if (!std::filesystem::exists(report_folder)) {
+		std::filesystem::create_directories(report_folder);
+	}
+
+	std::string name =
+		util::int_date_to_string(start_date) + "-" + util::int_date_to_string(end_date);
+	if (auto file = std::ofstream(report_folder / (name + ".txt"))) {
+		double price_sum = 0.0, quantity_sum = 0.0;
+		file << "Izvjestaj za period " << name << "\n\n\n";
+		file << "-------------------------------------------------------------------\n";
+		file << std::left << std::setw(4) << "RB " << std::left << std::setw(11) << "SIFRA "
+			 << std::setw(30) << "NAZIV " << std::setw(11) << "CIJENA " << std::setw(11)
+			 << "KOLICINA "
+			 << "\n";
+		file << "-------------------------------------------------------------------\n";
+		for (std::size_t i = 0; i < report.size(); ++i) {
+			file << std::left << std::setw(4) << i + 1 << std::left << std::setw(11)
+				 << report[i].get_barcode() << std::setw(30) << report[i].get_name()
+				 << std::setw(11) << report[i].get_price() << std::setw(11)
+				 << report[i].get_quantity() << "\n";
+			price_sum += report[i].get_price();
+			quantity_sum += report[i].get_quantity();
+		}
+		file << "-------------------------------------------------------------------\n";
+		file << "\n"
+			 << "\n"
+			 << "\n";
+		file << std::right << std::setw(67) << "Ukupna kolicina: " << quantity_sum << "\n";
+		file << std::right << std::setw(67) << "Ukupna cijena: " << price_sum << "\n";
+		file << std::right << std::setw(67) << "Datum: " << current_date_time().substr(0, 11)
+			 << "\n\n";
+		file << std::right << std::setw(67) << "Nalog: " << current_user.get_username();
+		file.close();
+	}
+}
+
 std::vector<Item> Database::create_report(const std::vector<Item>& items, const int& start_date,
-										  const int& end_date, std::string& path) {
-	std::vector<Item> report;
+										  const int& end_date) {
+	std::vector<Item> report{};
 	std::string barcode, name, price, quantity, day, month, year;
 	int position, date;
-	if (auto file = std::ifstream(path)) {
+	if (auto file = std::ifstream(paths.get_path("prodani_artikli"))) {
 		do {
 			std::getline(file, barcode, '#');
 			std::getline(file, name, '#');
@@ -156,14 +198,21 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 			std::getline(file, month, '/');
 			std::getline(file, year);
 
-			date = stoi(year + month + day);
-			// std::cout << date << std::endl;
+			std::string date_string = {year + month + day};
+			if (std::ranges::all_of(date_string.begin(), date_string.end(),
+									[](char c) { return isdigit(c) != 0; }) &&
+				date_string != "") {
+
+				date = stoi(date_string);
+			} else {
+				return report;
+			}
 
 			if (date >= start_date && date <= end_date) {
 				if (search_item_in_vector(items, barcode) !=
 					-1) { // Provjerava da li se za ucitani artikal trazi izvjestaj
-					if ((position = search_item_in_vector(report, barcode)) ==
-						-1) { // Provjerava da li se artikal vec nalazi u izvjestaju
+					position = search_item_in_vector(report, barcode);
+					if (position == -1) { // Provjerava da li se artikal vec nalazi u izvjestaju
 						Item new_item(barcode, name, std::stod(price), std::stod(quantity));
 						report.push_back(new_item);
 					} else {
@@ -173,7 +222,7 @@ std::vector<Item> Database::create_report(const std::vector<Item>& items, const 
 					}
 				}
 			}
-		} while (date <= end_date && file.eof() != 0);
+		} while (file.eof() == 0 && date >= start_date);
 		file.close();
 		return report;
 	} else
@@ -190,31 +239,31 @@ int Database::search_item_in_vector(const std::vector<Item>& vect, const std::st
 }
 
 // provjera stanja dostupnosti se provjerava prije ove funkcije
+
 void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 								const std::string& date) {
-	// nije jos definisana putanja gdje ce se fajl praviti
-	// std::string path = paths.get_path("");
-
-	std::string file_name = util::generete_receipt_file_name(date);
+	std::filesystem::path receipt_folder = paths.get_prefix().parent_path() / "receipts";
+	if (!std::filesystem::exists(receipt_folder)) {
+		std::filesystem::create_directories(receipt_folder);
+	}
 
 	std::fstream file;
-	file.open(file_name, std::ios::out);
+	file.open(receipt_folder / (util::generete_receipt_file_name(date) + ".txt"), std::ios::out);
 	double sum = 0;
 	if (file.is_open()) {
 		int width = 48;
 		file << std::setw(width) << std::setfill('=') << "\n";
-		file << util::helper(width, "Naziv prodavnice") << "\n";
-		file << util::helper(width, "Adresa") << "\n";
-		file << util::helper(width, "bilo sta") << "\n";
+		file << util::format_string(width, "Naziv prodavnice") << "\n";
+		file << util::format_string(width, "Adresa") << "\n";
+		file << util::format_string(width, "Broj telefona") << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << date << '\n';
-		file << std::left << "Blagajnik: " << current_user.get_username() << '\n';
-		// moze se dodati broj racuna, ali je to dosta posla jer bi nekad moglo doci do overflowa a
-		// ta staticka promjenljiva bi se morala cuvati u fajlu
+		file << std::left << "Blagajnik: " << get_current_user().get_username() << '\n';
 		file << "\n";
-		file << std::left << std::setw(27) << std::setfill(' ') << "Artikal" << std::setw(7)
-			 << "Cijena" << std::setw(6) << "Kol." << std::setw(8) << "Ukupno" << std::endl;
+		file << std::left << std::setw(23) << std::setfill(' ') << "Artikal" << std::setw(9)
+			 << "Cijena" << std::setw(8) << "Kol." << std::setw(10) << "Ukupno" << std::endl;
 		file << std::setw(width) << std::setfill('-') << "" << '\n';
+		file << std::setfill(' ');
 		for (int i = 0; i < sold_items.size(); i++) {
 			double price = sold_items[i].first.get_price();
 			double quantity = sold_items[i].second;
@@ -240,7 +289,7 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 			 << std::setw(13) << "Osnovica" << std::setw(8) << "Iznos" << std::endl;
 		file << std::left << std::setw(15) << "PDV 17%" << std::setw(12) << "17.00" << std::setw(13)
 			 << sum - sum * 0.17 << std::setw(8) << sum * 0.17 << std::endl; // PDV hardkodovan
-		file << util::helper(width, "Naziv prodavnice") << "\n";
+		file << util::format_string(width, "Hvala na posjeti!") << "\n";
 		file << std::setw(width) << std::setfill('=') << "" << '\n';
 
 	} else {
@@ -264,14 +313,12 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	std::fstream tmp_file;
 	std::fstream transaction_file;
 
-	std::string
-		putanja_do_pomocnog;	   // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
-	std::string putanja_do_pravog; // ovo treba zamjenit sa pravim putanjama do fajlova!!!!!!!!!!!!!
+	std::filesystem::path log_path = paths.get_path("prodani_artikli");
 
-	tmp_file.open(putanja_do_pomocnog, std::ios::out);
+	tmp_file.open(log_path.parent_path() / "temp.txt", std::ios::out);
 	if (!tmp_file.is_open()) throw "File couldn't be opened";
 
-	transaction_file.open(putanja_do_pravog, std::ios::in);
+	transaction_file.open(log_path, std::ios::in);
 	if (!transaction_file.is_open()) throw "File couldn't be opened";
 
 	for (size_t i = 0; i < items.size(); i++) {
@@ -282,10 +329,10 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	tmp_file.close();
 	transaction_file.close();
 
-	tmp_file.open(putanja_do_pomocnog, std::ios::in);
+	tmp_file.open(log_path.parent_path() / "temp.txt", std::ios::in);
 	if (!tmp_file.is_open()) throw "File couldn't be opened";
 
-	transaction_file.open(putanja_do_pravog, std::ios::out);
+	transaction_file.open(log_path, std::ios::out);
 	if (!transaction_file.is_open()) throw "File couldn't be opened";
 
 	transaction_file << tmp_file.rdbuf();
@@ -293,13 +340,7 @@ void Database::write_sold_items_to_file(const std::vector<Item>& items, const st
 	tmp_file.close();
 	transaction_file.close();
 
-	tmp_file.open(
-		putanja_do_pomocnog,
-		std::ios::out); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
-	if (!tmp_file.is_open())
-		throw "Fajl nije otvoren"; // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi
-								   // trosili resurse
-	tmp_file.close(); // cisto da se prebrisu podaci u pomocnom fajlu kako ne bi trosili resurse
+	std::filesystem::remove(log_path.parent_path() / "temp.txt");
 };
 
 // koristi se kad je vec provjereno da item postoji
