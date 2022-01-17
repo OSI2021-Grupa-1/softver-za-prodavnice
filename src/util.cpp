@@ -1,7 +1,9 @@
 #include "softver-za-prodavnice/util.hpp"
+#include <fstream>
 #include <list>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
+#include <string>
 #include "softver-za-prodavnice/database.hpp"
 
 std::vector<std::string> util::get_lines(const std::string& path) {
@@ -319,4 +321,18 @@ bool util::compare_date(int d, int m, int y, int d1, int m1, int y1) {
 
 	if (first_date <= seccond_date) return true;
 	return false;
+}
+Store util::load_store(std::filesystem::path path) {
+	std::string name{};
+	std::string address{};
+	std::string phone{};
+
+	std::ifstream file;
+	file.open(path);
+	if (file.is_open()) {
+		std::getline(file, name, '\n');
+		std::getline(file, address, '\n');
+		std::getline(file, phone, '\n');
+	}
+	return {name, address, phone};
 }

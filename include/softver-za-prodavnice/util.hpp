@@ -8,6 +8,7 @@
 #include <string_view>
 #include <vector>
 #include "softver-za-prodavnice/item.hpp"
+#include "softver-za-prodavnice/store.hpp"
 #include "softver-za-prodavnice/user.hpp"
 
 namespace util {
@@ -27,6 +28,7 @@ Item parse_item(const std::string& line);
 User parse_user(const std::string& line);
 std::vector<User> read_users_from_file(const std::string path);
 std::vector<Item> read_items_from_file(const std::string path);
+Store load_store(std::filesystem::path path);
 
 bool greater_price(const Item& item, double price);
 bool greater_quantity(const Item& item, double quantity);
@@ -40,7 +42,6 @@ bool is_leap(int y);
 int number_of_days(int m, int y);
 int week_increase(int d, int m, int y);
 bool compare_date(int d, int m, int y, int d1, int m1, int y1);
-
 
 std::string int_date_to_string(const int& date);
 } // namespace util

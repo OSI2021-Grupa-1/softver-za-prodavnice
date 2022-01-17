@@ -10,6 +10,7 @@
 #include <time.h>
 #include "softver-za-prodavnice/config.hpp"
 #include "softver-za-prodavnice/item.hpp"
+#include "softver-za-prodavnice/store.hpp"
 #include "softver-za-prodavnice/user.hpp"
 #include "softver-za-prodavnice/util.hpp"
 
@@ -17,10 +18,12 @@ class Database {
 	std::vector<User> user_data;
 	std::vector<Item> item_data;
 	Config paths;
+	Store store_info{};
 	User current_user{};
 
   public:
-	Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths);
+	Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths,
+			 Store store_info);
 	// treba biti dovoljno da se samo proslijedi konfiguracioni fajl i da baza podataka sama cita
 	// sve potrebne informacije
 	Database(Config& paths);
@@ -55,8 +58,9 @@ class Database {
 
 	void update_items(std::vector<std::pair<Item, double>> items);
 
-	bool check_item_availability(const std::string& other_barcode, const double& quantity);
-	
+	bool check_item_availability(const std::vector<Item>& items, const std::string& other_barcode,
+								 const double& quantity);
+
 	std::vector<Item> create_report(const std::vector<Item>& items, const int& start_date,
 									const int& end_date);
 	void write_report(const std::vector<Item>& items, const int& start_date, const int& end_date);

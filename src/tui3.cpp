@@ -25,8 +25,6 @@ ftxui::Color gray = {86, 108, 134};
 ftxui::Color dark_gray = {51, 60, 87};
 } // namespace
 
-
-
 void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 	std::string day_1;
 	Component day_1_input = Input(&day_1, "     ");
@@ -99,23 +97,23 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 						 center(hbox(text("Izaberi pocetni i krajni datum") | underlined))}) |
 					   borderLight,
 				   center(hbox(hbox(ftxui::text("Pocetni dan: "), day_1_input->Render()) |
-								   size(WIDTH, LESS_THAN, 40) | color(blue) | borderLight,
+								   size(WIDTH, LESS_THAN, 40) | color(light_gray) | borderLight,
 							   hbox(ftxui::text("Krajnji dan: "), day_2_input->Render()) |
-								   size(WIDTH, LESS_THAN, 40) | color(blue) | borderLight) |
+								   size(WIDTH, LESS_THAN, 40) | color(light_gray) | borderLight) |
 						  size(HEIGHT, EQUAL, 3) | vcenter),
 				   separatorDouble(),
 
 				   center(hbox(hbox(ftxui::text("Pocetni mjesec: "), month_1_input->Render()) |
-								   size(WIDTH, LESS_THAN, 40) | color(blue) | borderLight,
+								   size(WIDTH, LESS_THAN, 40) | color(light_gray) | borderLight,
 							   hbox(ftxui::text("Krajnji mjesec: "), month_2_input->Render()) |
-								   size(WIDTH, LESS_THAN, 40) | color(blue) | borderLight) |
+								   size(WIDTH, LESS_THAN, 40) | color(light_gray) | borderLight) |
 						  size(HEIGHT, EQUAL, 3) | vcenter),
 				   separatorDouble(),
 
 				   center(hbox(hbox(ftxui::text("Pocetna godina: "), year_1_input->Render()) |
-								   size(WIDTH, LESS_THAN, 40) | color(blue) | borderLight,
+								   size(WIDTH, LESS_THAN, 40) | color(light_gray) | borderLight,
 							   hbox(ftxui::text("Krajnja godina: "), year_2_input->Render()) |
-								   size(WIDTH, LESS_THAN, 40) | color(blue) | borderLight) |
+								   size(WIDTH, LESS_THAN, 40) | color(light_gray) | borderLight) |
 						  size(HEIGHT, EQUAL, 3) | vcenter),
 				   separatorDouble(),
 
@@ -125,7 +123,8 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 							 ftxui::color(red)}) |
 					   borderRounded
 
-			 }) | border | size(WIDTH, EQUAL, 150) | vcenter | hcenter
+			 }) |
+			 border | size(WIDTH, EQUAL, 150) | vcenter | hcenter
 
 			});
 	});
@@ -140,7 +139,7 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Nepravilan unos datuma"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -148,7 +147,7 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Uneseni datum ne postoji"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -156,7 +155,7 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Krajnji datum je veci od pocetnog"),
 				   separator(),
-				   center(hbox(depth_3_container->Render())),
+				   center(hbox(depth_3_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -165,7 +164,6 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 		Container::Tab({renderer, depth_1_renderer, depth_2_renderer, depth_3_renderer}, &depth);
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = renderer->Render();
-
 		if (depth == 1) {
 			document = dbox({
 				document,
@@ -186,6 +184,5 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 	});
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
-
 	screen.Loop(main_renderer);
 }

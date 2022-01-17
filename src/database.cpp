@@ -1,14 +1,18 @@
 #include "softver-za-prodavnice/database.hpp"
 #include <filesystem>
 
-Database::Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths)
-	: user_data(std::move(user_data)), item_data(std::move(item_data)), paths(std::move(paths)) {}
+Database::Database(std::vector<User> user_data, std::vector<Item> item_data, Config paths,
+				   Store store_info)
+	: user_data(std::move(user_data)), item_data(std::move(item_data)), paths(std::move(paths)),
+	  store_info(store_info) {}
 
 Database::Database(Config& paths) : paths(paths) {
 	std::string users_path = paths.get_path("korisnici");
 	std::string items_path = paths.get_path("artikli_na_stanju");
+	std::string info_path = paths.get_path("info");
 	user_data = util::read_users_from_file(users_path);
 	item_data = util::read_items_from_file(items_path);
+	store_info = util::load_store(info_path);
 }
 
 void Database::set_user_data(std::vector<User> user_data) {
@@ -130,14 +134,15 @@ void Database::update_items(std::vector<std::pair<Item, double>> items) {
 	write_items_to_file(paths.get_path("artikli_na_stanju"));
 }
 
-bool Database::check_item_availability(const std::string& other_barcode, const double& quantity) {
+bool Database::check_item_availability(const std::vector<Item>& items,
+									   const std::string& other_barcode, const double& quantity) {
 
 	int i;
-	for (i = 0; i < item_data.size(); i++) {
-		if (item_data[i].get_barcode() == other_barcode) break;
+	for (i = 0; i < items.size(); i++) {
+		if (items[i].get_barcode() == other_barcode) break;
 	}
-	if (i == item_data.size()) return false; // ne bi trebalo nikad
-	if (item_data[i].get_quantity() < quantity) throw std::length_error("Not enough quantity");
+	if (i == items.size()) return false; // ne bi trebalo nikad
+	if (items[i].get_quantity() < quantity) throw std::length_error("Not enough quantity");
 	return true;
 }
 
@@ -253,9 +258,9 @@ void Database::generate_receipt(std::vector<std::pair<Item, double>> sold_items,
 	if (file.is_open()) {
 		int width = 48;
 		file << std::setw(width) << std::setfill('=') << "\n";
-		file << util::format_string(width, "Naziv prodavnice") << "\n";
-		file << util::format_string(width, "Adresa") << "\n";
-		file << util::format_string(width, "Broj telefona") << "\n";
+		file << util::format_string(width, store_info.get_name()) << "\n";
+		file << util::format_string(width, store_info.get_address()) << "\n";
+		file << util::format_string(width, store_info.get_phone()) << "\n";
 		file << std::setw(width) << std::setfill('-') << '\n';
 		file << std::left << "Datum i vrijeme: " << date << '\n';
 		file << std::left << "Blagajnik: " << get_current_user().get_username() << '\n';

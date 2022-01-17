@@ -97,22 +97,22 @@ void tui::login_interface(Database& db) {
 			correct_password = password;
 		}
 		return ftxui::vbox({center(bold(ftxui::text(welcome_message)) | vcenter |
-								   size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
-								borderHeavy | size(WIDTH, EQUAL, 150),
+								   size(HEIGHT, EQUAL, 5) | ftxui::color(orange)),
+							separatorHeavy(),
 
 							ftxui::vbox({center(ftxui::hbox(
-								ftxui::text(""), name_input->Render() | size(WIDTH, LESS_THAN, 80) |
+								ftxui::text(""), name_input->Render() | size(WIDTH, LESS_THAN, 40) |
 													 ftxui::color(input_color)))}) |
 								ftxui::borderRounded,
 							center(hbox(ftxui::text(""), password_input->Render() |
-															 size(WIDTH, LESS_THAN, 80) |
+															 size(WIDTH, LESS_THAN, 40) |
 															 ftxui::color(light_gray))) |
 								ftxui::borderRounded | vcenter,
 							center(hbox(center(log_in_button->Render()) | size(WIDTH, EQUAL, 12) |
 											ftxui::color(bright_green),
 										center(center(exit_button->Render())) |
 											size(WIDTH, EQUAL, 12) | ftxui::color(red)))}) |
-			   hcenter | color(light_gray);
+			   hcenter | color(light_gray) | borderHeavy | size(WIDTH, EQUAL, 150);
 	});
 
 	auto on_agree = [&]() { depth = 0; };
@@ -123,7 +123,7 @@ void tui::login_interface(Database& db) {
 		return vbox({
 				   text("Netacna lozinka"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -206,23 +206,23 @@ void tui::change_password(Database& db, User& user, bool quitable,
 		}
 
 		return ftxui::vbox(
-				   {center(bold(ftxui::text(welcome_message)) | vcenter | size(HEIGHT, EQUAL, 5) |
-						   ftxui::color(white)) |
-						borderHeavy | size(WIDTH, EQUAL, 150),
+				   {center(bold(ftxui::text(welcome_message)) | vcenter | size(HEIGHT, EQUAL, 3) |
+						   ftxui::color(light_gray)),
+					separatorHeavy(),
 
 					ftxui::vbox({center(ftxui::hbox(
-						ftxui::text(""), password_input->Render() | size(WIDTH, LESS_THAN, 80) |
+						ftxui::text(""), password_input->Render() | size(WIDTH, LESS_THAN, 40) |
 											 ftxui::color(light_gray)))}) |
 						ftxui::borderRounded,
 					center(hbox(ftxui::text(""), password_confirmation->Render() |
-													 size(WIDTH, LESS_THAN, 80) |
+													 size(WIDTH, LESS_THAN, 40) |
 													 ftxui::color(input_color))) |
 						ftxui::borderRounded | vcenter,
 					center(hbox(center(confirm_button->Render()) | size(WIDTH, EQUAL, 12) |
 									ftxui::color(bright_green),
 								center(center(cancel_button->Render())) | size(WIDTH, EQUAL, 12) |
 									ftxui::color(red)))}) |
-			   hcenter | color(light_gray);
+			   hcenter | color(light_gray) | borderHeavy | size(WIDTH, EQUAL, 150);
 	});
 
 	screen.Loop(renderer);
@@ -244,8 +244,8 @@ void tui::supervisor_interface(Database& db) {
 
 	auto renderer = ftxui::Renderer(component, [&] {
 		return ftxui::vbox({center(bold(ftxui::text(db.get_current_user().get_username())) |
-								   vcenter | size(HEIGHT, EQUAL, 5) | ftxui::color(white)) |
-								borderHeavy | size(WIDTH, EQUAL, 100),
+								   vcenter | size(HEIGHT, EQUAL, 3) | ftxui::color(light_gray)),
+							separatorHeavy(),
 							center(ftxui::vbox({center(items_button->Render()) |
 													size(WIDTH, EQUAL, 100) | ftxui::color(yellow),
 												center(report_button->Render()) |
@@ -257,7 +257,7 @@ void tui::supervisor_interface(Database& db) {
 												center(logout_button->Render()) |
 													size(WIDTH, EQUAL, 100) | ftxui::color(red)}) |
 								   borderRounded | size(WIDTH, EQUAL, 100) | center)}) |
-			   hcenter | color(light_gray);
+			   hcenter | color(light_gray) | borderHeavy | size(WIDTH, EQUAL, 150);
 	});
 	screen.Loop(renderer);
 }
@@ -287,7 +287,7 @@ void tui::employee_interface(Database& db) {
 				   }) | size(WIDTH, EQUAL, 150) |
 					   borderHeavy | vcenter | hcenter,
 			   }) |
-			   vcenter;
+			   vcenter | borderHeavy;
 	});
 
 	screen.Loop(renderer);
@@ -321,7 +321,8 @@ void tui::selling_items_interface(Database& db) {
 		bool item_available = false;
 		try {
 			d_quantity = std::stod(quantity);
-			item_available = db.check_item_availability(list[selected][0], d_quantity);
+
+			item_available = db.check_item_availability(items_copy, list[selected][0], d_quantity);
 		} catch (const std::length_error& exc) {
 			depth = 1;
 		} catch (const std::invalid_argument& exc) {
@@ -370,17 +371,17 @@ void tui::selling_items_interface(Database& db) {
 
 	auto depth_0_renderer = Renderer(depth_0_container, [&] {
 		return ftxui::vbox({
-				   hbox(center(text(db.get_current_user().get_username()))),
+				   center(hbox(center(text(db.get_current_user().get_username())))),
 				   separator(),
 				   hbox(center(text("     SIFRA     ARTIKAL              CIJENA"))),
-				   radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) |
+				   radiobox->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 10) |
 					   border,
 				   center(hbox(ftxui::text(" Kolicina artikla:  ") | size(WIDTH, LESS_THAN, 20),
 							   quantity_input->Render() | ftxui::color(light_gray))) |
 					   ftxui::borderRounded | vcenter | size(WIDTH, EQUAL, 50),
-				   center(hbox(center(add_item_button->Render()))),
-				   center(hbox(center(generate_receipt_button->Render()))),
-				   center(hbox(center(cancel_button->Render()))),
+				   center(hbox(center(add_item_button->Render() | color(yellow)))),
+				   center(hbox(center(generate_receipt_button->Render() | color(bright_green)),
+							   center(cancel_button->Render() | color(red)))),
 
 			   }) |
 			   center | borderHeavy;
@@ -396,7 +397,7 @@ void tui::selling_items_interface(Database& db) {
 		return vbox({
 				   text("Nedovoljno artikala na stanju"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -404,7 +405,7 @@ void tui::selling_items_interface(Database& db) {
 		return vbox({
 				   text("Nepravilan unos kolicine"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -412,7 +413,7 @@ void tui::selling_items_interface(Database& db) {
 		return vbox({
 				   text("Za generisanje racuna mora se dodati bar jedan artikal"),
 				   separator(),
-				   center(hbox(depth_3_container->Render())),
+				   center(hbox(depth_3_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -525,13 +526,13 @@ void tui::employee_overview(Database& db) {
 		}
 		return vbox(
 			{center(bold(text("PREGLED RADNIKA"))), separator(),
-			 items->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 40) | border,
+			 items->Render() | vscroll_indicator | frame | size(HEIGHT, LESS_THAN, 20) | border,
 			 vbox({center(create_button->Render()) | ftxui::color(yellow),
 				   center(delete_button->Render()) | ftxui::color(yellow),
 				   center(edit_button->Render()) | ftxui::color(yellow),
 				   center(back_button->Render()) | ftxui::color(red)
 
-			 }) | border});
+			 })});
 	});
 
 	auto screen = ScreenInteractive::TerminalOutput();
@@ -571,8 +572,7 @@ void tui::create_employee_interface(Database& db) {
 	auto confirm_button = ftxui::Button("SACUVAJ", [&] {
 		if (name.find('#') != std::string::npos) {
 			depth = 1; // ime sadrzi #
-		}
-		else if (db.find_user(name) == -1) {
+		} else if (db.find_user(name) == -1) {
 			std::vector<User> temp = db.get_user_data();
 			std::string position = (selected == 0) ? "radnik" : "sef";
 			temp.push_back({correct_name, correct_password, position, 0});
@@ -625,7 +625,7 @@ void tui::create_employee_interface(Database& db) {
 
 			 }) | border});
 	});
-	
+
 	auto on_agree = [&]() { depth = 0; };
 
 	auto depth_1_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
@@ -634,14 +634,12 @@ void tui::create_employee_interface(Database& db) {
 		return vbox({
 				   text("Korisnicko ime ne smije da sadrzi znak '#'"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render() | color(red))),
 			   }) |
 			   border;
 	});
 
-	auto main_container = Container::Tab(
-		{renderer, depth_1_renderer},
-		&depth);
+	auto main_container = Container::Tab({renderer, depth_1_renderer}, &depth);
 
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = renderer->Render();
@@ -736,16 +734,16 @@ void tui::items_overview(Database& db) {
 
 	// legenda
 	std::stringstream title_stream;
-	title_stream << "  " << std::left << std::setw(11) << " sifra " << std::setw(30) << " naziv "
-				 << std::setw(6) << " cijena " << std::setw(6) << " kolicina ";
+	title_stream << "    " << std::left << std::setw(11) << " SIFRA " << std::setw(30) << "NAZIV "
+				 << std::setw(10) << "CIJENA " << std::setw(8) << "KOLICINA ";
 	auto legend = ftxui::text(title_stream.str());
 
 	for (int i = 0; i < number_of_items; ++i) {
 		states[i].checked = false;
 		std::stringstream ss;
-		ss << "  " << std::left << std::setw(8) << items_for_display[i].get_barcode()
-		   << std::setw(21) << items_for_display[i].get_name() << std::setw(6)
-		   << items_for_display[i].get_price() << std::setw(6)
+		ss << "  " << std::left << std::setw(10) << items_for_display[i].get_barcode()
+		   << std::setw(30) << items_for_display[i].get_name() << std::setw(10)
+		   << items_for_display[i].get_price() << std::setw(8)
 		   << items_for_display[i].get_quantity();
 		std::string display_string = ss.str();
 		items->Add(Checkbox(display_string, &states[i].checked));
@@ -776,9 +774,9 @@ void tui::items_overview(Database& db) {
 		items->DetachAllChildren();
 		for (int i = 0; i < number_of_items; ++i) {
 			std::stringstream ss;
-			ss << "  " << std::left << std::setw(11) << items_for_display[i].get_barcode()
-			   << std::setw(30) << items_for_display[i].get_name() << std::setw(6)
-			   << items_for_display[i].get_price() << std::setw(6)
+			ss << "  " << std::left << std::setw(10) << items_for_display[i].get_barcode()
+			   << std::setw(30) << items_for_display[i].get_name() << std::setw(10)
+			   << items_for_display[i].get_price() << std::setw(8)
 			   << items_for_display[i].get_quantity();
 			std::string display_string = ss.str();
 			items->Add(Checkbox(display_string, &states[i].checked));
@@ -802,26 +800,30 @@ void tui::items_overview(Database& db) {
 		}
 
 		return ftxui::vbox(
-			{center(bold(text("PREGLED ARTIKALA"))), separator(),
-			 ftxui::hbox(
-				 {ftxui::vbox({
-					  legend,
-					  ftxui::separatorHeavy(),
-					  items->Render() | vscroll_indicator | frame | border,
-				  }),
-				  ftxui::vbox({center(bold(text("Filter: "))), separator(), filter->Render(),
-							   filter_button->Render() | ftxui::size(HEIGHT, EQUAL, 3)}) |
-					  border}),
+				   {center(bold(text("PREGLED ARTIKALA"))), separator(),
+					ftxui::hbox(
+						{ftxui::vbox({
+							 legend,
+							 ftxui::separatorHeavy(),
+							 items->Render() | color(light_gray) | vscroll_indicator | frame |
+								 border,
+						 }),
+						 ftxui::vbox({center(bold(text("Filter: "))), separator(), filter->Render(),
+									  filter_button->Render() | color(orange) |
+										  ftxui::size(HEIGHT, EQUAL, 3)}) |
+							 border}),
 
-			 vbox({center(create_button->Render()) | ftxui::color(yellow),
-				   center(delete_button->Render()) | ftxui::color(yellow),
-				   center(
-					   ftxui::hbox({center(edit_button->Render()) | ftxui::color(yellow),
-									center(bold(text("  "))), center(quantity_input->Render())}) |
-					   border),
-				   center(back_button->Render()) | ftxui::color(red)
+					vbox({center(create_button->Render()) | ftxui::color(yellow),
+						  center(delete_button->Render()) | ftxui::color(yellow),
+						  center(ftxui::hbox({center(edit_button->Render()) | ftxui::color(yellow),
+											  center(bold(text("  "))),
+											  center(quantity_input->Render() | color(light_gray)),
+											  center(bold(text("  ")))}) |
+								 border),
+						  center(back_button->Render()) | ftxui::color(red)
 
-			 }) | border});
+					}) | border}) |
+			   borderHeavy;
 	});
 
 	auto screen = ScreenInteractive::TerminalOutput();
@@ -886,19 +888,19 @@ void tui::create_item_interface(Database& db) {
 	auto depth_0_renderer = Renderer(component, [&] {
 		return vbox(
 			{vbox({center(hbox(ftxui::text("Naziv artikla: "), name_input->Render()) |
-						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+						  size(WIDTH, LESS_THAN, 80) | color(yellow)) |
 					   size(HEIGHT, EQUAL, 3) | vcenter,
 				   separatorDouble(),
 				   center(hbox(ftxui::text("Sifra artikla: "), barcode_input->Render()) |
-						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+						  size(WIDTH, LESS_THAN, 80) | color(yellow)) |
 					   size(HEIGHT, EQUAL, 3) | vcenter,
 				   separatorDouble(),
 				   center(hbox(ftxui::text("Cijena artikla: "), price_input->Render()) |
-						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+						  size(WIDTH, LESS_THAN, 80) | color(yellow)) |
 					   size(HEIGHT, EQUAL, 3) | vcenter,
 				   separatorDouble(),
 				   center(hbox(ftxui::text("Kolicina artikla: "), quantity_input->Render()) |
-						  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+						  size(WIDTH, LESS_THAN, 80) | color(yellow)) |
 					   size(HEIGHT, EQUAL, 3) | vcenter,
 				   separatorDouble(),
 				   hbox({center(create_button->Render()) | size(WIDTH, EQUAL, 100) |
@@ -917,7 +919,6 @@ void tui::create_item_interface(Database& db) {
 	auto depth_4_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 	auto depth_5_container = Container::Horizontal({Button("U REDU", [&] { on_agree(); })});
 
-
 	auto depth_1_renderer = Renderer(depth_1_container, [&] {
 		return vbox({
 				   text("Nepravilan unos cijene ili kolicine") | color(yellow),
@@ -930,7 +931,7 @@ void tui::create_item_interface(Database& db) {
 		return vbox({
 				   text("Sifra artikla mora da sadrzi 8 karaktera"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -938,7 +939,7 @@ void tui::create_item_interface(Database& db) {
 		return vbox({
 				   text("Sifra artikla vec postoji"),
 				   separator(),
-				   center(hbox(depth_3_container->Render())),
+				   center(hbox(depth_3_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -946,7 +947,7 @@ void tui::create_item_interface(Database& db) {
 		return vbox({
 				   text("Naziv i sifra artikla ne smiju da sadrze '#'"),
 				   separator(),
-				   center(hbox(depth_4_container->Render())),
+				   center(hbox(depth_4_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -954,14 +955,14 @@ void tui::create_item_interface(Database& db) {
 		return vbox({
 				   text("Naziv artikla ne smije biti duzi od 30 karaktera"),
 				   separator(),
-				   center(hbox(depth_5_container->Render())),
+				   center(hbox(depth_5_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
 
 	auto main_container = Container::Tab({depth_0_renderer, depth_1_renderer, depth_2_renderer,
 										  depth_3_renderer, depth_4_renderer, depth_5_renderer},
-		&depth);
+										 &depth);
 
 	auto main_renderer = Renderer(main_container, [&] {
 		Element document = depth_0_renderer->Render();
