@@ -23,14 +23,21 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
   endif()
 endif()
 
+
 #Set flag on linnux
 if(UNIX)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 endif()
 
 #add library folder
 set(FTXUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/ftxui)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
+set (FTXUI_BUILD_DOCS  OFF)
+set (FTXUI_BUILD_EXAMPLES  OFF)
+set (FTXUI_BUILD_TESTS  OFF)
+set (FTXUI_BUILD_TESTS_FUZZER OFF)
+set (FTXUI_ENABLE_INSTALL OFF)
+
 add_subdirectory(${FTXUI_DIR})
 
 
