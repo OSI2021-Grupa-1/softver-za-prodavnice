@@ -117,7 +117,7 @@ void tui::report_interface(Database& db) {
 		for (int i = 0; i < number_of_items; ++i) {
 			std::stringstream ss;
 			ss << "  " << std::left << std::setw(10) << items_for_display[i].get_barcode()
-			   << std::setw(21) << items_for_display[i].get_name() << std::setw(8)
+			   << std::setw(30) << items_for_display[i].get_name() << std::setw(10)
 			   << items_for_display[i].get_price() << std::setw(8)
 			   << items_for_display[i].get_quantity();
 			std::string display_string = ss.str();
@@ -125,39 +125,46 @@ void tui::report_interface(Database& db) {
 		}
 
 		return vbox(
-			{vbox({center(bold(text("SPISAK ARTIKALA"))), separator(),
-				   ftxui::hbox(
-					   {ftxui::vbox({
-							text("      SIFRA     ARTIKAL              CIJENA  KOLICINA"),
-							ftxui::separatorHeavy(),
-							items->Render() | vscroll_indicator | frame | border |
-								size(HEIGHT, LESS_THAN, 8),
-						}),
-						ftxui::vbox({center(bold(text("Filter: "))), separator(), filter->Render(),
-									 filter_button->Render() | ftxui::size(HEIGHT, EQUAL, 3)}) |
-							border}),
-				   hbox({center(daily_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
-					   hcenter,
-				   hbox({center(weekly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
-					   hcenter,
-				   hbox({center(monthly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
-					   hcenter,
-				   hbox({center(yearly_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
-					   hcenter,
-				   hbox({center(arbitrary_button->Render()) | size(HEIGHT, EQUAL, 3) | vcenter}) |
-					   hcenter,
-				   hbox({center(cancel_button->Render()) | size(HEIGHT, EQUAL, 3) | color(red) |
-						 vcenter}) |
-					   hcenter
+			{vbox(
+				 {center(bold(text("SPISAK ARTIKALA"))), separator(),
+				  ftxui::hbox(
+					  {ftxui::vbox({
+						   text("      SIFRA     ARTIKAL                       CIJENA    KOLICINA"),
+						   ftxui::separatorHeavy(),
+						   items->Render() | vscroll_indicator | frame | border |
+							   size(HEIGHT, LESS_THAN, 10),
+					   }),
+					   ftxui::vbox({center(bold(text("Filter: "))), separator(), filter->Render(),
+									filter_button->Render() | color(orange) |
+										ftxui::size(HEIGHT, EQUAL, 3)}) |
+						   border}),
+				  hbox({center(daily_button->Render()) | color(yellow) | size(HEIGHT, EQUAL, 3) |
+						vcenter}) |
+					  hcenter,
+				  hbox({center(weekly_button->Render()) | color(yellow) | size(HEIGHT, EQUAL, 3) |
+						vcenter}) |
+					  hcenter,
+				  hbox({center(monthly_button->Render()) | color(yellow) | size(HEIGHT, EQUAL, 3) |
+						vcenter}) |
+					  hcenter,
+				  hbox({center(yearly_button->Render()) | color(yellow) | size(HEIGHT, EQUAL, 3) |
+						vcenter}) |
+					  hcenter,
+				  hbox({center(arbitrary_button->Render()) | color(yellow) |
+						size(HEIGHT, EQUAL, 3) | vcenter}) |
+					  hcenter,
+				  hbox({center(cancel_button->Render()) | size(HEIGHT, EQUAL, 3) | color(red) |
+						vcenter}) |
+					  hcenter
 
-			 }) | border | size(WIDTH, EQUAL, 150) | vcenter | hcenter});
+				 }) |
+			 border | size(WIDTH, EQUAL, 150) | vcenter | hcenter});
 	});
 
 	auto screen = ftxui::ScreenInteractive::TerminalOutput();
 
 	screen.Loop(renderer);
 }
-
 
 void tui::daily_report(Database& db, const std::vector<Item>& items) {
 	std::string day;
@@ -178,7 +185,7 @@ void tui::daily_report(Database& db, const std::vector<Item>& items) {
 			i_day = std::stoi(day);
 			i_month = std::stoi(month);
 			i_year = std::stoi(year);
-		} catch (... /* const std::exception& exc */) {
+		} catch (...) {
 			depth = 1; // nepravilan unos, ne moze se konvertovati u int
 			check = false;
 		}
@@ -205,15 +212,15 @@ void tui::daily_report(Database& db, const std::vector<Item>& items) {
 								 center(hbox(text("Izaberi datum") | underlined))}) |
 							   borderLight,
 						   center(hbox(ftxui::text("Dan: "), day_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   center(hbox(ftxui::text("Mjesec: "), month_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   center(hbox(ftxui::text("Godina: "), year_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   hbox({center(generate_button->Render()) | size(WIDTH, EQUAL, 100) |
@@ -237,7 +244,7 @@ void tui::daily_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Nepravilan unos datuma"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -245,7 +252,7 @@ void tui::daily_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Uneseni datum ne postoji"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -321,15 +328,15 @@ void tui::weekly_report(Database& db, const std::vector<Item>& items) {
 								 center(hbox(text("Izaberi datum") | underlined))}) |
 							   borderLight,
 						   center(hbox(ftxui::text("Dan: "), day_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   center(hbox(ftxui::text("Mjesec: "), month_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   center(hbox(ftxui::text("Godina: "), year_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   hbox({center(generate_button->Render()) | size(WIDTH, EQUAL, 100) |
@@ -353,7 +360,7 @@ void tui::weekly_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Nepravilan unos datuma"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -361,7 +368,7 @@ void tui::weekly_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Uneseni datum ne postoji"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -435,11 +442,11 @@ void tui::monthly_report(Database& db, const std::vector<Item>& items) {
 							   borderLight,
 
 						   center(hbox(ftxui::text("Mjesec: "), month_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   center(hbox(ftxui::text("Godina: "), year_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   hbox({center(generate_button->Render()) | size(WIDTH, EQUAL, 100) |
@@ -463,7 +470,7 @@ void tui::monthly_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Nepravilan unos datuma"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -471,7 +478,7 @@ void tui::monthly_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Uneseni datum ne postoji"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -538,7 +545,7 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 							   borderLight,
 
 						   center(hbox(ftxui::text("Godina: "), year_input->Render()) |
-								  size(WIDTH, LESS_THAN, 80) | color(blue)) |
+								  size(WIDTH, LESS_THAN, 80) | color(light_gray)) |
 							   size(HEIGHT, EQUAL, 3) | vcenter,
 						   separatorDouble(),
 						   hbox({center(generate_button->Render()) | size(WIDTH, EQUAL, 100) |
@@ -562,7 +569,7 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Nepravilan unos datuma"),
 				   separator(),
-				   center(hbox(depth_1_container->Render())),
+				   center(hbox(depth_1_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
@@ -570,7 +577,7 @@ void tui::yearly_report(Database& db, const std::vector<Item>& items) {
 		return vbox({
 				   text("Uneseni datum ne postoji"),
 				   separator(),
-				   center(hbox(depth_2_container->Render())),
+				   center(hbox(depth_2_container->Render())) | color(red),
 			   }) |
 			   border;
 	});
