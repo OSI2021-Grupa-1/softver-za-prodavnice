@@ -63,8 +63,7 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 			check = false;
 		}
 		if (check) {
-			if (util::is_valid_date(i_day_1, i_month_1, i_year_1, db.current_date_time()) &&
-				util::is_valid_date(i_day_2, i_month_2, i_year_2, db.current_date_time())) {
+			if (util::is_valid_date(i_day_1, i_month_1, i_year_1, db.current_date_time())) {
 
 				std::string temp_1 = std::to_string(i_year_1);
 				std::string temp_2 = std::to_string(i_year_2);
@@ -75,8 +74,10 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 						  (i_day_2 < 10 ? "0" : "") + std::to_string(i_day_2);
 
 				int start_date = std::stoi(temp_1);
-				int end_date = std::stoi(temp_1);
+				int end_date = std::stoi(temp_2);
 
+
+				
 				db.write_report(items, start_date, end_date);
 				supervisor_interface(db);
 			} else if (!util::compare_date(i_day_1, i_month_1, i_year_1, i_day_2, i_month_2,
@@ -93,7 +94,7 @@ void tui::arbitrary_report(Database& db, const std::vector<Item>& items) {
 
 	auto renderer = Renderer(component, [&] {
 		return vbox(
-			{vbox({vbox({center(hbox(text("PROIZVOLJNI IZVJESTAJ IZVJESTAJ"))),
+			{vbox({vbox({center(hbox(text("PROIZVOLJNI IZVJESTAJ"))),
 						 center(hbox(text("Izaberi pocetni i krajni datum") | underlined))}) |
 					   borderLight,
 				   center(hbox(hbox(ftxui::text("Pocetni dan: "), day_1_input->Render()) |
