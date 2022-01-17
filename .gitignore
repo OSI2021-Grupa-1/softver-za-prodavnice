@@ -2,4 +2,7 @@
 **/build/*
 **/x64/*
 **/.vs/*
+**/.vscode/*
+
 .cache/
+compile_commands.json
